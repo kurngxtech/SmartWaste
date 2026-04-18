@@ -2,22 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AnalyticsService, FoodItem } from '../../services/analytics.service';
+import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 
 @Component({
    selector: 'app-food-inventory-page',
    standalone: true,
-   imports: [CommonModule, RouterModule],
+   imports: [CommonModule, RouterModule, SideBarNavigation],
    templateUrl: './food-inventory-page.html'
 })
 export class FoodInventoryPageComponent implements OnInit {
-   menuItems = [
-      { label: 'Dashboard and Impact', icon: '📊', route: '/dashboard', active: false },
-      { label: 'Food And Inventory', icon: '🍎', route: '/inventory', active: true },
-      { label: 'Donation Hub', icon: '🤝', route: '/donations', active: false },
-      { label: 'Meal Planner', icon: '🗓️', route: '/planner', active: false },
-      { label: 'Setting', icon: '⚙️', route: '/settings', active: false }
-   ];
-
    activeTab = 'ALL';
    allInventoryItems: FoodItem[] = [];
    filteredInventoryItems: FoodItem[] = [];

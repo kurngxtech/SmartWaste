@@ -2,22 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
+import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 
 @Component({
    selector: 'app-dashboard-page',
    standalone: true,
-   imports: [CommonModule, RouterModule],
+   imports: [CommonModule, RouterModule, SideBarNavigation],
    templateUrl: './dashboard-page.html'
 })
 export class DashboardPage implements OnInit {
-   menuItems = [
-      { label: 'Dashboard and Impact', icon: '📊', route: '/dashboard', active: true },
-      { label: 'Food And Inventory', icon: '🍎', route: '/inventory', active: false },
-      { label: 'Donation Hub', icon: '🤝', route: '/donations', active: false },
-      { label: 'Meal Planner', icon: '🗓️', route: '/planner', active: false },
-      { label: 'Setting', icon: '⚙️', route: '/settings', active: false }
-   ];
-
    chartData: any[] = [];
    alerts: any[] = [];
    
