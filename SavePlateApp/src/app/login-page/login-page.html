@@ -16,6 +16,12 @@
 
          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
 
+            <div *ngIf="emailNotFound"
+               class="p-3 mb-4 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
+               The email you used does not exist. We suggest you to <a routerLink="/signup"
+                  class="underline hover:text-white">create an account</a>.
+            </div>
+
             <div>
                <label for="email" class="block text-sm font-semibold mb-2 ml-1">Email Address</label>
                <input type="email" id="email" formControlName="email" placeholder="name@example.com"
@@ -48,7 +54,7 @@
                <label for="rememberMe" class="text-sm text-green-100 cursor-pointer select-none">Remember Me</label>
             </div>
 
-            <button type="submit" [disabled]="loginForm.invalid" routerLink="/dashboard"
+            <button type="submit" [disabled]="loginForm.invalid"
                class="w-full py-4 px-6 rounded-lg bg-green-500 hover:bg-green-400 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold text-lg shadow-lg transform active:scale-[0.98] transition-all duration-150">
                Sign In
             </button>
@@ -58,7 +64,8 @@
          <footer class="mt-12 text-center">
             <p class="text-sm text-green-100">
                New to SavePlate?
-               <a routerLink="/signup" class="font-bold text-white hover:underline underline-offset-4 cursor-pointer">Sign up</a>
+               <a routerLink="/signup"
+                  class="font-bold text-white hover:underline underline-offset-4 cursor-pointer">Sign up</a>
             </p>
          </footer>
       </div>

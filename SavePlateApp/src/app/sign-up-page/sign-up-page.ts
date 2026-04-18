@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../authentication/auth.service';
 @Component({
    selector: 'app-sign-up-page',
    standalone: true,
@@ -11,7 +12,7 @@ import { RouterLink } from '@angular/router';
 export class SignUpPageComponent {
    signUpForm: FormGroup;
 
-   constructor(private fb: FormBuilder) {
+   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
       this.signUpForm = this.fb.group({
          fullName: ['', [Validators.required]],
          email: ['', [Validators.required, Validators.email]],
@@ -26,7 +27,8 @@ export class SignUpPageComponent {
    onSubmit(): void {
       if (this.signUpForm.valid) {
          console.log('Registration details:', this.signUpForm.value);
-         // In Iteration 1 Task 2, we will send this data to the Express backend to save in the DB
+         this.authService.register(this.signUpForm.value);
+         this.router.navigate(['/login']);
       } else {
          // Mark all as touched to show errors if user clicks submit prematurely
          this.signUpForm.markAllAsTouched();

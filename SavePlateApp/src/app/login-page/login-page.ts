@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../authentication/auth.service';
 @Component({
    selector: 'app-login-page',
    standalone: true,
@@ -10,8 +11,9 @@ import { RouterLink } from '@angular/router';
 })
 export class LoginPage {
    loginForm: FormGroup;
+   emailNotFound = false;
 
-   constructor(private fb: FormBuilder) {
+   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
       // Initializing the form with validations for Iteration 1
       this.loginForm = this.fb.group({
          email: ['', [Validators.required, Validators.email]],
@@ -26,7 +28,13 @@ export class LoginPage {
    onSubmit(): void {
       if (this.loginForm.valid) {
          console.log('Login attempt:', this.loginForm.value);
-         // In Task 2, we will connect this to the Node.js backend
+         const email = this.loginForm.get('email')?.value;
+         if (this.authService.checkEmailExists(email)) {
+            this.emailNotFound = false;
+            this.router.navigate(['/dashboard']);
+         } else {
+            this.emailNotFound = true;
+         }
       }
    }
 }
