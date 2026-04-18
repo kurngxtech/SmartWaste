@@ -4,10 +4,10 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-side-bar-navigation',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './side-bar-navigation.html'
+   selector: 'app-side-bar-navigation',
+   standalone: true,
+   imports: [CommonModule, RouterModule],
+   templateUrl: './side-bar-navigation.html'
 })
 export class SideBarNavigation {
    menuItems = [
@@ -28,11 +28,11 @@ export class SideBarNavigation {
          this.currentUrl = event.urlAfterRedirects;
       });
    }
-   
+
    isActive(route: string): boolean {
-       if (route === '/') {
-           return this.currentUrl === '/' || this.currentUrl === '/dashboard';
-       }
-       return this.currentUrl.includes(route);
+      if (route === '/') {
+         return this.currentUrl === '/' || this.currentUrl === '/dashboard';
+      }
+      return this.currentUrl.includes(route);
    }
 }
