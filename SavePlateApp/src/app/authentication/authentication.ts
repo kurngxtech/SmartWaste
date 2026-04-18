@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-authentication',
-  imports: [],
-  templateUrl: './authentication.html',
-  styleUrl: './authentication.css',
+   selector: 'app-authentication',
+   imports: [],
+   templateUrl: './authentication.html'
 })
-export class Authentication {}
+export class Authentication { }

@@ -48,7 +48,7 @@
                <label for="rememberMe" class="text-sm text-green-100 cursor-pointer select-none">Remember Me</label>
             </div>
 
-            <button type="submit" [disabled]="loginForm.invalid"
+            <button type="submit" [disabled]="loginForm.invalid" routerLink="/dashboard"
                class="w-full py-4 px-6 rounded-lg bg-green-500 hover:bg-green-400 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold text-lg shadow-lg transform active:scale-[0.98] transition-all duration-150">
                Sign In
             </button>
