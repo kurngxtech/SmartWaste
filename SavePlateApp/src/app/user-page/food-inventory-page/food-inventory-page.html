@@ -1,0 +1,200 @@
+<div class="flex h-screen bg-gray-100 font-sans overflow-hidden">
+
+   <aside class="hidden md:flex flex-col w-64 bg-gray-800 text-gray-300 transition-all duration-300">
+      <div class="flex items-center justify-center h-16 border-b border-gray-700 bg-gray-900">
+         <span class="text-2xl font-black text-white tracking-wider">LOGO</span>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2">
+         <a *ngFor="let item of menuItems" [routerLink]="item.route"
+            class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer"
+            [ngClass]="item.active ? 'bg-green-600 text-white shadow-md' : 'hover:bg-gray-700 hover:text-white'">
+            <span class="mr-3">{{ item.icon }}</span>
+            <span class="font-medium text-sm">{{ item.label }}</span>
+         </a>
+      </nav>
+
+      <div class="p-4 border-t border-gray-700 bg-gray-800 hover:bg-gray-700 cursor-pointer transition-colors">
+         <div class="flex items-center">
+            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold mr-3">U
+            </div>
+            <div>
+               <p class="text-sm font-semibold text-white">User Detail</p>
+               <p class="text-xs text-gray-400">Household Account</p>
+            </div>
+         </div>
+      </div>
+   </aside>
+
+   <div class="flex flex-col flex-1 overflow-hidden">
+
+      <header
+         class="flex items-center justify-between md:justify-end h-16 px-6 bg-white border-b border-gray-200 shadow-sm z-10">
+         <div class="md:hidden font-bold text-green-700 text-xl">SavePlate</div>
+         <div class="flex items-center space-x-4">
+            <button class="relative p-2 text-gray-400 hover:text-green-600 transition-colors focus:outline-none">
+               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                  </path>
+               </svg>
+            </button>
+            <div
+               class="flex items-center px-3 py-1.5 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+               <span class="text-sm font-semibold text-gray-700">USER</span>
+            </div>
+         </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
+
+         <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+               <div class="flex items-center space-x-3 mb-1">
+                  <h1 class="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Food Inventory</h1>
+                  <span
+                     class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded-full border border-green-200">Use
+                     Case 2: Manage Food</span>
+               </div>
+               <p class="text-sm text-gray-500">Manage fridge, pantry, and freezer items.</p>
+            </div>
+            <button
+               class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg shadow-sm transition-colors flex items-center justify-center whitespace-nowrap">
+               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+               </svg>
+               Add New Item
+            </button>
+         </div>
+
+         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+               <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                     <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                     </svg>
+                  </div>
+                  <input type="text" placeholder="Search items..."
+                     class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full sm:w-64 outline-none transition-all">
+               </div>
+               <button
+                  class="flex items-center justify-center px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                     </path>
+                  </svg>
+                  Filter
+               </button>
+            </div>
+
+            <div class="flex space-x-1 bg-gray-200 p-1 rounded-lg overflow-x-auto w-full lg:w-auto">
+               <button (click)="setActiveTab('ALL')"
+                  class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
+                  [ngClass]="activeTab === 'ALL' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'">
+                  ALL ({{ counts.all }})
+               </button>
+               <button (click)="setActiveTab('FRIDGE')"
+                  class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
+                  [ngClass]="activeTab === 'FRIDGE' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'">
+                  FRIDGE ({{ counts.fridge }})
+               </button>
+               <button (click)="setActiveTab('PANTRY')"
+                  class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
+                  [ngClass]="activeTab === 'PANTRY' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'">
+                  PANTRY ({{ counts.pantry }})
+               </button>
+               <button (click)="setActiveTab('FREEZER')"
+                  class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
+                  [ngClass]="activeTab === 'FREEZER' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'">
+                  FREEZER ({{ counts.freezer }})
+               </button>
+            </div>
+         </div>
+
+         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+               <table class="w-full text-left border-collapse">
+                  <thead>
+                     <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-wider">
+                        <th class="p-4 w-12"><input type="checkbox"
+                              class="rounded border-gray-300 text-green-600 focus:ring-green-500"></th>
+                        <th class="p-4 font-semibold">Item Name</th>
+                        <th class="p-4 font-semibold">Category</th>
+                        <th class="p-4 font-semibold">QTY</th>
+                        <th class="p-4 font-semibold">Expiry Date</th>
+                        <th class="p-4 font-semibold">Status</th>
+                        <th class="p-4 font-semibold text-center">Actions</th>
+                     </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100 text-sm">
+                     <tr *ngFor="let item of filteredInventoryItems" class="hover:bg-gray-50 transition-colors group">
+                        <td class="p-4"><input type="checkbox"
+                              class="rounded border-gray-300 text-green-600 focus:ring-green-500"></td>
+                        <td class="p-4 font-medium text-gray-800">{{ item.name }}</td>
+                        <td class="p-4">
+                           <span
+                              class="px-2.5 py-1 rounded bg-gray-100 text-gray-600 text-xs font-semibold border border-gray-200">{{
+                              item.category }}</span>
+                        </td>
+                        <td class="p-4 text-gray-600 font-medium">{{ item.quantity }} {{ item.unit }}</td>
+                        <td class="p-4 text-gray-600">{{ item.expiryDate }}</td>
+                        <td class="p-4">
+                           <span class="px-2.5 py-1 rounded-full text-xs font-bold flex inline-flex items-center"
+                              [ngClass]="item.status === 'Available' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
+                              <span class="w-1.5 h-1.5 rounded-full mr-1.5"
+                                 [ngClass]="item.status === 'Available' ? 'bg-green-500' : 'bg-yellow-500'"></span>
+                              {{ item.status }}
+                           </span>
+                        </td>
+                        <td
+                           class="p-4 flex justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button class="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View"><svg class="w-5 h-5"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                 </path>
+                              </svg></button>
+                           <button class="p-1 text-green-600 hover:bg-green-50 rounded" title="Mark as used"><svg
+                                 class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                              </svg></button>
+                           <button class="p-1 text-red-600 hover:bg-red-50 rounded" title="Delete"><svg class="w-5 h-5"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                 </path>
+                              </svg></button>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+
+            <div
+               class="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50">
+               <span class="text-sm text-gray-500">Showing <span class="font-medium text-gray-800">1</span> to <span
+                     class="font-medium text-gray-800">{{ filteredInventoryItems.length }}</span> of <span class="font-medium text-gray-800">{{ filteredInventoryItems.length }}</span>
+                  entries</span>
+               <div class="flex space-x-1">
+                  <button
+                     class="px-3 py-1 text-sm text-gray-500 bg-white border border-gray-300 rounded hover:bg-gray-50">Prev</button>
+                  <button class="px-3 py-1 text-sm text-white bg-green-600 border border-green-600 rounded">1</button>
+                  <button
+                     class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50">2</button>
+                  <button
+                     class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50">3</button>
+                  <button
+                     class="px-3 py-1 text-sm text-gray-500 bg-white border border-gray-300 rounded hover:bg-gray-50">Next</button>
+               </div>
+            </div>
+         </div>
+
+      </main>
+   </div>
+</div>

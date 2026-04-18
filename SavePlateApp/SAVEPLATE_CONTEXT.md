@@ -1,92 +1,78 @@
-SavePlate Project Context: Iteration 1
-1. Project Overview & Motivation
+content = """# SavePlate Project Context: Iteration 1 (Updated April 18, 2026)
 
-    Project Name: SavePlate – Smart Food Waste Reduction App.
+## 1. Project Overview & Motivation
 
-    Mission: To reduce household food waste through intelligent inventory management, expiry alerts, and community donation facilitation.
+- **Project Name**: SavePlate – Smart Food Waste Reduction App[cite: 1].
+- **Mission**: To help reduce household food waste through intelligent inventory management, expiry alerts, donation facilitation, and responsible meal planning[cite: 4, 51].
+- **Target Audience**: Malaysian households battling food waste[cite: 2, 283].
+- **Key Goals**: Develop a web-based prototype within 8-10 weeks that protects user data and account privacy while promoting sustainable habits[cite: 4, 313].
 
-    Target Audience: Malaysian households, specifically individuals managing food at home for themselves or others.
+## 2. Technical Stack & Architecture
 
-    Key Goals:
+- **Platform**: Responsive Web-based application[cite: 3, 319].
+- **Frontend**: Angular (Standalone components) with Tailwind CSS for styling[cite: 153, 353].
+- **Backend**: Node.js (Express) on a logic layer driving the Application Tier[cite: 156, 353].
+- **Database**: Relational database (PostgreSQL/Node.js) using UUIDs for primary keys to ensure data integrity [cite: 164, 197-212].
+- **Deployment**: Three-tier architecture comprising Client Node (Presentation), Back-End Environment (Logic), and Database Server (Persistence) [cite: 151-163].
 
-        Develop a web-based prototype within 8–10 weeks.
+## 3. UI/UX Design Language
 
-        Implement secure data management with Two-Factor Authentication (2FA).
+- **Theme**: Modern, eco-friendly sustainability theme[cite: 320].
+- **Palette**: Deep green-based palette (e.g., `bg-green-700` to `bg-green-900` gradients) with white and gray-100 backgrounds.
+- **Layout Standards**:
+  - **Login**: Two-column desktop (70/30 split).
+  - **Sign-Up**: Three-column desktop (35/30/35 split).
+  - **Dashboard**: Fixed Sidebar (240px), Top Navbar (60px), and responsive Main Content area.
 
-        Create an intelligent tracking system for expiration notifications.
+## 4. Current Implementation Progress
 
-2. Technical Stack & Architecture
+### A. Routing Configuration (`app.routes.ts`)
 
-    Platform: Responsive Web-based application.
+- Default path (`''`) loads `LoginPageComponent`.
+- `/register` loads `SignUpPageComponent`.
+- `/dashboard` loads `DashboardPageComponent`.
 
-    Frontend: Angular (v21.0.4) with Tailwind CSS for styling.
+### B. Auth Components (Login & Sign-Up)
 
-    Backend: Node.js for server-side logic and database management.
+- **Functionality**: Reactive Forms with full validation logic.
+- **Fields**: Email, Password, Full Name, and Household Size[cite: 119].
+- **Testing Status**:
+  - **Unit/Integration**: Vitest implemented for Component and Service layers.
+  - **E2E**: Cypress configured for real-browser interaction testing.
+  - **Validation**: Mocked verification code and @gmail.com provider restrictions are active in the prototype.
 
-    Database: Structured relational database (Users, Inventory, Donations, MealPlans).
+### C. Dashboard Page Component
 
-    Deployment: Client Node (Angular SPA), Logic Layer (Node.js API Gateway), and Data Tier (Persistence Layer).
+- **Sidebar Navigation**: Dashboard and Impact, Food and Inventory, Donation Hub, Meal Planner, and Settings[cite: 178].
+- **Impact Analysis Section**:
+  - Stats cards for Total Food Saved, Donations Made, Status Tier (GOLD), and Alerts.
+  - Visual Reports: CSS-based "Monthly Impact Graph" and "Alerts Panel" for expiring items[cite: 119].
 
-3. UI/UX Design Language
+## 5. Assigned Use Cases & Responsibility
 
-    Theme: Modern, eco-friendly sustainability theme.
+- **User (Self)**:
+  - **UC1**: User Registration and Security Management[cite: 119].
+  - **UC4**: Impact Analytics and Reporting[cite: 119].
+- **Kevin**:
+  - **UC2**: Food Inventory Management[cite: 119].
+  - **UC6**: Weekly Meal Planning[cite: 119].
+- **Ari**:
+  - **UC3**: Community Food Browsing[cite: 119].
+  - **UC5**: Automated Notification System[cite: 119].
 
-    Palette: Deep green-based palette (e.g., bg-green-700 to bg-green-900 gradients) with white accents.
+## 6. Strategic Roadmap & Next Steps
 
-    Layout Standards:
+1.  **UC4 Implementation**: Build `AnalyticsService` using **Mock Data** (hardcoded JSON) to populate the Dashboard UI immediately without waiting for UC2/UC3 backend completion.
+2.  **Backend Auth**: Transition UC1 to the Node.js side by building the `POST /api/auth/register` endpoint and `Users` table for Iteration 2 requirements.
+3.  **Integration Hub**: Maintain the Dashboard "Shell" and provide component hooks for Kevin and Ari to plug in their respective modules.
 
-        Login: Two-column desktop (70% image placeholder / 30% form), full-width mobile.
+## 7. Project Schedule & Milestones
 
-        Sign-Up: Three-column desktop (35% img / 30% form / 35% img), full-width mobile.
+- **Internal Development Deadline**: April 23, 2026.
+- **Iteration 1 Submission (Prototype Demo)**: April 25, 2026[cite: 341].
+- **Iteration 2 Submission (Final Prototype)**: May 23, 2026[cite: 342].
 
-4. Current Implementation Progress
-A. Routing Configuration (app.routes.ts)
+---
 
-The root path is configured to load the Login page, with /register leading to the Sign-Up page.
-B. Login Page Component
-
-    Functionality: Reactive Forms with validation for email (required + format) and password (required + min-length 6).
-
-    Features: "Remember Me" checkbox and "Forgot Password" subtle link.
-
-C. Sign-Up Page Component
-
-    Functionality: Reactive Forms capturing Full Name, Email, Password, and Household Size.
-
-    Validation: * Full Name: Required.
-
-        Email: Required + Valid format.
-
-        Password: Required + Min-length 6.
-
-        Household Size: Required + Positive integer.
-
-5. Testing Strategy
-
-    Framework: Jasmine (assertions) and Karma (test runner).
-
-    Scope: Must cover Positive (Happy Path) and Negative (Error Handling) scenarios for each User Story.
-
-    Status: Unit test structures are initialized (.spec.ts files generated) for Auth components.
-
-6. Project Schedule & Milestones
-
-    Current Phase: Iteration 1 (Coding & Testing).
-
-    Internal Progress Deadline: April 23, 2026.
-
-    Milestone 3 (Iteration 1 Submission): April 25, 2026.
-
-    Milestone 4 (Final Prototype Submission): May 23, 2026.
-
-7. Development Guidelines
-
-    CSS: Use Tailwind utility classes exclusively; avoid external CSS files.
-
-    Components: Utilize Angular Standalone Components for modularity.
-
-    Form Handling: Use FormBuilder and ReactiveFormsModule for all data entry.
-
-    Git: Frequent atomic commits on separate feature branches before merging to main.
-
-AI Agent Sync Note: This file represents the current state of the SavePlate repository as of April 18, 2026. When assisting with code, ensure alignment with the green-themed UI and the modular Node.js backend architecture described in the architectural design documents.
+**AI Agent Sync Note**: Ensure all new components are standalone and utilize the established green-themed Tailwind classes. Prioritize "Mock-First" development for Analytics (UC4) to maintain the sprint velocity toward the April 23 deadline.
+"""
