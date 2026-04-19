@@ -1,0 +1,169 @@
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Meal Planner</h1>
+      <p class="page-subtitle">Plan your weekly meals using available inventory</p>
+    </div>
+    <button class="btn-primary" (click)="openModal('Mon', 'Breakfast')">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+        <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Plan a meal
+    </button>
+  </div>
+
+  <!-- Week navigation -->
+  <div class="week-nav">
+    <button class="btn-nav" (click)="changeWeek(-1)">&#8249; Prev</button>
+    <span class="week-label">{{ weekLabel() }}</span>
+    <button class="btn-nav" (click)="changeWeek(1)">Next &#8250;</button>
+    <button class="btn-nav btn-today" (click)="goToday()">Today</button>
+    <span class="week-meta">{{ plannedCount() }} meal(s) planned</span>
+  </div>
+
+  <!-- Calendar grid -->
+  <div class="calendar-wrapper">
+    <div class="calendar-grid">
+      <div class="cal-corner"></div>
+      <div
+        *ngFor="let d of calendarDays()"
+        class="cal-header"
+        [class.today-col]="d.isToday"
+      >
+        <div class="cal-day-label">{{ d.day }}</div>
+        <div class="cal-day-date">{{ d.date.getDate() }}</div>
+      </div>
+
+      <ng-container *ngFor="let slot of slots">
+        <div class="cal-row-label">{{ slot }}</div>
+        <div
+          *ngFor="let d of calendarDays()"
+          class="cal-cell"
+          [class.today-col]="d.isToday"
+          (click)="openModal(d.day, slot)"
+        >
+          <div
+            *ngFor="let plan of getPlansForCell(d.day, slot)"
+            class="meal-chip"
+            [class]="getSlotChipClass(slot)"
+            (click)="removePlan(plan.id, $event)"
+            [title]="'Click to remove · ' + plan.ingredients.length + ' ingredient(s)'"
+          >
+            <svg width="10" height="10" viewBox="0 0 12 12" *ngIf="plan.reminderEnabled">
+              <circle cx="6" cy="6" r="2.5" fill="currentColor"/>
+            </svg>
+            <span class="chip-text">{{ plan.name }}</span>
+          </div>
+          <div class="add-hint">
+            <svg width="10" height="10" viewBox="0 0 12 12">
+              <path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Bottom section: suggestions + reminders + reserved -->
+  <div class="bottom-grid">
+
+    <!-- Recipe suggestions -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Recipe suggestions</h3>
+        <span class="card-subtitle">Based on your inventory</span>
+      </div>
+
+      <div *ngIf="suggestions().length > 0; else noSuggestions">
+        <div
+          *ngFor="let recipe of suggestions()"
+          class="recipe-card"
+          (click)="openModalFromRecipe(recipe)"
+        >
+          <div class="recipe-top">
+            <span class="recipe-name">{{ recipe.name }}</span>
+            <span class="badge-expiring" *ngIf="recipe.usesExpiring">Uses expiring</span>
+          </div>
+          <div class="recipe-meta">
+            <span>{{ recipe.matchedIngredients.join(' · ') }}</span>
+            <span class="meta-sep">·</span>
+            <span>{{ recipe.prepTime }} min</span>
+            <span class="meta-sep">·</span>
+            <span>{{ recipe.slot }}</span>
+          </div>
+          <div class="recipe-desc">{{ recipe.description }}</div>
+        </div>
+      </div>
+
+      <ng-template #noSuggestions>
+        <div class="empty-state">
+          <p class="empty-title">No matching recipes</p>
+          <p class="empty-sub">Add ingredients to your inventory to see suggestions.</p>
+          <button class="btn-primary-outline" (click)="openModal('Mon', 'Breakfast')">
+            Create meal manually
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Right column: reminders + reserved -->
+    <div class="right-col">
+
+      <!-- Reminders -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Upcoming reminders</h3>
+        </div>
+
+        <div *ngIf="reminders().length > 0; else noReminders">
+          <div *ngFor="let r of reminders()" class="reminder-item">
+            <div class="reminder-dot" [class]="'dot-' + r.slot.toLowerCase()"></div>
+            <div class="reminder-content">
+              <div class="reminder-name">{{ r.name }}</div>
+              <div class="reminder-meta">{{ r.day }} · {{ r.slot }}</div>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noReminders>
+          <p class="empty-hint">No reminders scheduled yet.</p>
+        </ng-template>
+      </div>
+
+      <!-- Reserved inventory -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Reserved from inventory</h3>
+        </div>
+
+        <div *ngIf="reservedList().length > 0; else noReserved">
+          <div *ngFor="let r of reservedList()" class="reserved-row">
+            <span class="reserved-name">{{ r.name }}</span>
+            <div class="reserved-right">
+              <span class="badge-reserved">{{ r.reserved }} reserved</span>
+              <span class="reserved-total">of {{ r.total }}</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noReserved>
+          <p class="empty-hint">No ingredients reserved yet.</p>
+        </ng-template>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Add meal modal -->
+<app-add-meal-modal
+  *ngIf="showModal()"
+  [defaultDay]="modalDay()"
+  [defaultSlot]="modalSlot()"
+  [prefillRecipe]="prefillRecipe()"
+  (save)="onSaveMeal($event)"
+  (close)="onCloseModal()"
+/>

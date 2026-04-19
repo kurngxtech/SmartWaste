@@ -1,0 +1,446 @@
+.page-wrapper {
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: #f9fafb;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  background: #4f7942;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.btn-primary:hover { background: #3d6132; }
+
+.btn-primary-outline {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4f7942;
+  background: #ffffff;
+  border: 1px solid #4f7942;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+}
+
+.btn-primary-outline:hover { background: #f0fdf4; }
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.week-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  min-width: 180px;
+  text-align: center;
+}
+
+.btn-nav {
+  padding: 7px 14px;
+  font-size: 13px;
+  color: #374151;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.btn-nav:hover { background: #f3f4f6; }
+
+.btn-today {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.week-meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ─── Calendar ─────────────────────────────────────── */
+.calendar-wrapper {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 90px repeat(7, minmax(120px, 1fr));
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 800px;
+}
+
+.cal-corner {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.cal-header {
+  background: #f9fafb;
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.cal-header:last-child {
+  border-right: none;
+}
+
+.cal-header.today-col {
+  background: #f0fdf4;
+}
+
+.cal-day-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cal-day-date {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-top: 2px;
+}
+
+.cal-header.today-col .cal-day-label,
+.cal-header.today-col .cal-day-date {
+  color: #166534;
+}
+
+.cal-row-label {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: right;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: #fafafa;
+}
+
+.cal-cell {
+  padding: 6px;
+  min-height: 78px;
+  border-right: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.cal-cell:last-child {
+  border-right: none;
+}
+
+.cal-cell.today-col {
+  background: #f9fdf6;
+}
+
+.cal-cell:hover {
+  background: #f3f4f6;
+}
+
+.cal-cell:hover .add-hint {
+  opacity: 1;
+}
+
+.calendar-grid > div:nth-last-child(-n+8) {
+  border-bottom: none;
+}
+
+.meal-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 3px;
+  cursor: pointer;
+  line-height: 1.3;
+  transition: opacity 0.15s;
+}
+
+.meal-chip:hover {
+  opacity: 0.75;
+}
+
+.chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-breakfast { background: #dbeafe; color: #1e40af; }
+.chip-lunch     { background: #dcfce7; color: #166534; }
+.chip-dinner    { background: #e0e7ff; color: #3730a3; }
+.chip-snack     { background: #fef3c7; color: #92400e; }
+
+.add-hint {
+  opacity: 0;
+  font-size: 10px;
+  color: #9ca3af;
+  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 0.15s;
+}
+
+/* ─── Bottom grid ──────────────────────────────────── */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+}
+
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ─── Recipe cards ─────────────────────────────────── */
+.recipe-card {
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.recipe-card:last-child {
+  margin-bottom: 0;
+}
+
+.recipe-card:hover {
+  background: #f9fafb;
+  border-color: #4f7942;
+}
+
+.recipe-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.recipe-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.badge-expiring {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.recipe-meta {
+  font-size: 11px;
+  color: #6b7280;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.meta-sep { color: #d1d5db; }
+
+.recipe-desc {
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ─── Reminders ────────────────────────────────────── */
+.reminder-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.reminder-item:last-child { border-bottom: none; }
+
+.reminder-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-breakfast { background: #3b82f6; }
+.dot-lunch     { background: #16a34a; }
+.dot-dinner    { background: #6366f1; }
+.dot-snack     { background: #f59e0b; }
+
+.reminder-content {
+  flex: 1;
+}
+
+.reminder-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.reminder-meta {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+
+/* ─── Reserved ─────────────────────────────────────── */
+.reserved-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+
+.reserved-row:last-child { border-bottom: none; }
+
+.reserved-name {
+  font-weight: 500;
+  color: #111827;
+}
+
+.reserved-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-reserved {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.reserved-total {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* ─── Empty states ─────────────────────────────────── */
+.empty-state {
+  padding: 28px 16px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 4px;
+}
+
+.empty-sub {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.empty-hint {
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ─── Responsive ───────────────────────────────────── */
+@media (max-width: 900px) {
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
