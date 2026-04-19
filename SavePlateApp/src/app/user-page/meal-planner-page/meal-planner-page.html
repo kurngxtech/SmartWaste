@@ -47,7 +47,7 @@
           <div
             *ngFor="let plan of getPlansForCell(d.day, slot)"
             class="meal-chip"
-            [class]="getSlotChipClass(slot)"
+            [ngClass]="getSlotChipClass(slot)"
             (click)="removePlan(plan.id, $event)"
             [title]="'Click to remove · ' + plan.ingredients.length + ' ingredient(s)'"
           >
