@@ -4,23 +4,7 @@
 
    <div class="flex flex-col flex-1 overflow-hidden">
 
-      <header
-         class="flex items-center justify-between md:justify-end h-16 px-6 bg-white border-b border-gray-200 shadow-sm z-10">
-         <div class="md:hidden font-bold text-green-700 text-xl">SavePlate</div>
-         <div class="flex items-center space-x-4">
-            <button class="relative p-2 text-gray-400 hover:text-green-600 transition-colors focus:outline-none">
-               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                  </path>
-               </svg>
-            </button>
-            <div
-               class="flex items-center px-3 py-1.5 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-               <span class="text-sm font-semibold text-gray-700">USER</span>
-            </div>
-         </div>
-      </header>
+      <app-header></app-header>
 
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
 
@@ -28,9 +12,6 @@
             <div>
                <div class="flex items-center space-x-3 mb-1">
                   <h1 class="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Food Inventory</h1>
-                  <span
-                     class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded-full border border-green-200">Use
-                     Case 2: Manage Food</span>
                </div>
                <p class="text-sm text-gray-500">Manage fridge, pantry, and freezer items.</p>
             </div>
@@ -155,7 +136,8 @@
             <div
                class="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50">
                <span class="text-sm text-gray-500">Showing <span class="font-medium text-gray-800">1</span> to <span
-                     class="font-medium text-gray-800">{{ filteredInventoryItems.length }}</span> of <span class="font-medium text-gray-800">{{ filteredInventoryItems.length }}</span>
+                     class="font-medium text-gray-800">{{ filteredInventoryItems.length }}</span> of <span
+                     class="font-medium text-gray-800">{{ filteredInventoryItems.length }}</span>
                   entries</span>
                <div class="flex space-x-1">
                   <button

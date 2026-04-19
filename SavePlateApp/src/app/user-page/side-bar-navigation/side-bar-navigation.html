@@ -1,26 +1,27 @@
-   <aside class="hidden md:flex flex-col w-64 bg-gray-800 text-gray-300 transition-all duration-300 h-full">
-      <div class="flex items-center justify-center h-16 border-b border-gray-700 bg-gray-900">
-         <span class="text-2xl font-black text-white tracking-wider">SAVEPLATE</span>
-      </div>
+<aside class="hidden md:flex flex-col w-64 bg-gray-800 text-gray-300 transition-all duration-300 h-full">
+   <div class="flex items-center justify-center h-16 border-b border-gray-700 bg-gray-900">
+      <span class="text-2xl font-black text-white tracking-wider">SAVEPLATE</span>
+   </div>
 
-      <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2">
-         <a *ngFor="let item of menuItems" [routerLink]="item.route"
-            class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer"
-            [ngClass]="isActive(item.route) ? 'bg-green-600 text-white shadow-md' : 'hover:bg-gray-700 hover:text-white'">
-            <span class="mr-3">{{ item.icon }}</span>
-            <span class="font-medium text-sm">{{ item.label }}</span>
-         </a>
-      </nav>
+   <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2">
+      <a *ngFor="let item of menuItems" [routerLink]="item.route"
+         class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer"
+         [ngClass]="isActive(item.route) ? 'bg-green-600 text-white shadow-md' : 'hover:bg-gray-700 hover:text-white'">
+         <!-- FIX: Use img tag instead of just printing the path string -->
+         <img [src]="item.icon" class="w-5 h-5 mr-3" alt="">
+         <span class="font-medium text-sm">{{ item.label }}</span>
+      </a>
+   </nav>
 
-      <div class="p-4 border-t border-gray-700 bg-gray-800 hover:bg-gray-700 cursor-pointer transition-colors">
-         <div class="flex items-center">
-            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold mr-3">
-               U
-            </div>
-            <div>
-               <p class="text-sm font-semibold text-white">User Detail</p>
-               <p class="text-xs text-gray-400">Household Account</p>
-            </div>
+   <div class="p-4 border-t border-gray-700 bg-gray-800 hover:bg-gray-700 cursor-pointer transition-colors">
+      <div class="flex items-center">
+         <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold mr-3">
+            U
+         </div>
+         <div>
+            <p class="text-sm font-semibold text-white">User Detail</p>
+            <p class="text-xs text-gray-400">Household Account</p>
          </div>
       </div>
-   </aside>
+   </div>
+</aside>

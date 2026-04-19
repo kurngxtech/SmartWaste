@@ -4,26 +4,7 @@
 
    <div class="flex flex-col flex-1 overflow-hidden">
 
-      <header
-         class="flex items-center justify-between md:justify-end h-16 px-6 bg-white border-b border-gray-200 shadow-sm z-10">
-         <div class="md:hidden font-bold text-green-700 text-xl">SavePlate</div>
-
-         <div class="flex items-center space-x-4">
-            <button class="relative p-2 text-gray-400 hover:text-green-600 transition-colors focus:outline-none">
-               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                  </path>
-               </svg>
-               <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-            </button>
-
-            <div
-               class="flex items-center px-3 py-1.5 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-               <span class="text-sm font-semibold text-gray-700">USER</span>
-            </div>
-         </div>
-      </header>
+      <app-header></app-header>
 
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
 
@@ -35,22 +16,25 @@
          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                <div
-                  class="w-10 h-10 rounded bg-green-100 text-green-700 flex items-center justify-center font-bold text-xs mb-4">
-                  Logo</div>
+                  class="w-10 h-10 rounded bg-green-100 flex items-center justify-center mb-4">
+                  <img src="/app-logo/total-food-dashboard.ico" alt="Food Saved" class="w-6 h-6 object-contain">
+               </div>
                <h3 class="text-3xl font-black text-gray-800">{{ totalFoodSavedKG | number:'1.1-1' }} KG</h3>
                <p class="text-sm text-gray-500 mt-1 font-medium">Total Food Saved</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                <div
-                  class="w-10 h-10 rounded bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mb-4">
-                  Logo</div>
+                  class="w-10 h-10 rounded bg-blue-100 flex items-center justify-center mb-4">
+                  <img src="/app-logo/food-donation-dashboard.ico" alt="Donations Made" class="w-6 h-6 object-contain">
+               </div>
                <h3 class="text-3xl font-black text-gray-800">{{ totalDonationsKG | number:'1.1-1' }} KG</h3>
                <p class="text-sm text-gray-500 mt-1 font-medium">Donations Made</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                <div
-                  class="w-10 h-10 rounded bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold text-xs mb-4">
-                  Logo</div>
+                  class="w-10 h-10 rounded bg-yellow-100 flex items-center justify-center mb-4">
+                  <img src="/app-logo/gold-medal.ico" alt="Gold Tier" class="w-6 h-6 object-contain">
+               </div>
                <h3 class="text-3xl font-black text-yellow-600">GOLD</h3>
                <p class="text-sm text-gray-500 mt-1 font-medium">Current Status Tier</p>
             </div>
@@ -58,7 +42,7 @@
                class="bg-white rounded-xl shadow-sm border border-red-100 p-6 hover:shadow-md transition-shadow relative overflow-hidden">
                <div class="absolute right-0 top-0 w-2 h-full bg-red-400"></div>
                <h3 class="text-lg font-bold text-gray-800 mb-2">ALERT</h3>
-               <p class="text-3xl font-black text-red-500">{{ alerts.length }} New</p>
+               <p class="text-3xl font-black text-red-500">{{ alertCount }} New</p>
                <p class="text-sm text-gray-500 mt-1 font-medium">Requires attention</p>
             </div>
          </div>
@@ -86,7 +70,7 @@
                </div>
 
                <div
-                  class="flex-1 w-full h-64 relative bg-gray-50 rounded-lg p-4 border border-dashed border-gray-200">
+                  class="flex-1 w-full h-[400px] relative bg-gray-50 rounded-lg p-4 border border-dashed border-gray-200">
                   <canvas #impactChart></canvas>
                </div>
             </div>
@@ -94,15 +78,15 @@
             <div
                class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden hover:shadow-md transition-shadow">
                <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                  <h2 class="text-lg font-bold text-gray-800">ALERT</h2>
-                  <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full">{{ alerts.length }} New</span>
+                  <h2 class="text-lg font-bold text-gray-800">NOTIFICATIONS</h2>
+                  <span class="bg-blue-100 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">{{ alerts.length }} New</span>
                </div>
 
                <div class="flex-1 overflow-y-auto p-2">
                   <div *ngFor="let alert of alerts"
                      class="p-4 mb-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 cursor-pointer transition-colors group">
                      <div class="flex items-start">
-                        <div class="mt-1 w-2 h-2 rounded-full bg-red-400 mr-3"></div>
+                        <div class="mt-1 w-2 h-2 rounded-full mr-3" [ngClass]="alert.type === 'alert' ? 'bg-red-400' : 'bg-green-400'"></div>
                         <div>
                            <h4 class="text-sm font-bold text-gray-800 group-hover:text-green-700 transition-colors">{{
                               alert.title }}</h4>

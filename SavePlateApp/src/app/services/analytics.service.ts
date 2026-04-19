@@ -61,12 +61,23 @@ export class AnalyticsService {
    }
 
    getAlerts() {
-      return this.mockData
+      const expiring = this.mockData
          .filter(item => item.status === 'Expiring Soon')
          .map(item => ({
+            type: 'alert',
             title: 'EXPIRING ITEM',
             subtitle: `${item.name} expires on ${item.expiryDate}`
          }));
+         
+      const donated = this.mockData
+         .filter(item => item.status === 'Donated')
+         .map(item => ({
+            type: 'success',
+            title: 'DONATION SUCCESS',
+            subtitle: `${item.quantity} ${item.unit} of ${item.name} donated`
+         }));
+         
+      return [...expiring, ...donated];
    }
 
    // Monthly Chart Data Generation based on filters

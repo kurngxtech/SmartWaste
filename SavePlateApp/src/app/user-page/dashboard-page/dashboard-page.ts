@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
+import { Header } from '../header/header';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -10,7 +11,7 @@ Chart.register(...registerables);
 @Component({
    selector: 'app-dashboard-page',
    standalone: true,
-   imports: [CommonModule, RouterModule, SideBarNavigation],
+   imports: [CommonModule, RouterModule, SideBarNavigation, Header],
    templateUrl: './dashboard-page.html'
 })
 export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
@@ -19,6 +20,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    
    chartData: any[] = [];
    alerts: any[] = [];
+   alertCount: number = 0;
    
    totalFoodSavedKG: number = 0;
    totalDonationsKG: number = 0;
@@ -38,6 +40,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       this.totalFoodSavedKG = this.analyticsService.getTotalFoodSavedKG();
       this.totalDonationsKG = this.analyticsService.getTotalDonationsKG();
       this.alerts = this.analyticsService.getAlerts();
+      this.alertCount = this.alerts.filter(a => a.type === 'alert').length;
       this.chartData = this.analyticsService.getMonthlyImpactChart(this.selectedRange, this.selectedCategory);
    }
 

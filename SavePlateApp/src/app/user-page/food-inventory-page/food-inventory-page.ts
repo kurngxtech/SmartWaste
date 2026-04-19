@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AnalyticsService, FoodItem } from '../../services/analytics.service';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
+import { Header } from '../header/header';
 
 @Component({
    selector: 'app-food-inventory-page',
    standalone: true,
-   imports: [CommonModule, RouterModule, SideBarNavigation],
+   imports: [CommonModule, RouterModule, SideBarNavigation, Header],
    templateUrl: './food-inventory-page.html'
 })
 export class FoodInventoryPageComponent implements OnInit {
@@ -22,12 +23,12 @@ export class FoodInventoryPageComponent implements OnInit {
       freezer: 0
    };
 
-   constructor(private analyticsService: AnalyticsService) {}
+   constructor(private analyticsService: AnalyticsService) { }
 
    ngOnInit() {
       // Sync with the shared mock data
       this.allInventoryItems = this.analyticsService.getAllItems();
-      
+
       this.counts.all = this.allInventoryItems.length;
       this.counts.fridge = this.allInventoryItems.filter(i => i.category === 'Fridge').length;
       this.counts.pantry = this.allInventoryItems.filter(i => i.category === 'Pantry').length;
@@ -38,7 +39,7 @@ export class FoodInventoryPageComponent implements OnInit {
 
    setActiveTab(tab: string): void {
       this.activeTab = tab;
-      
+
       if (tab === 'ALL') {
          this.filteredInventoryItems = this.allInventoryItems;
       } else {

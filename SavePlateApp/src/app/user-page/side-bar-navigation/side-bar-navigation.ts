@@ -11,11 +11,11 @@ import { filter } from 'rxjs/operators';
 })
 export class SideBarNavigation {
    menuItems = [
-      { label: 'Dashboard and Impact', icon: '📊', route: '/' },
-      { label: 'Food And Inventory', icon: '🍎', route: '/inventory' },
-      { label: 'Donation Hub', icon: '🤝', route: '/donations' },
-      { label: 'Meal Planner', icon: '🗓️', route: '/planner' },
-      { label: 'Setting', icon: '⚙️', route: '/settings' }
+      { label: 'Dashboard and Impact', icon: '/app-logo/dashboard.ico', route: '/' },
+      { label: 'Food And Inventory', icon: '/app-logo/diet.ico', route: '/inventory' },
+      { label: 'Donation Hub', icon: '/app-logo/food-donation-navbar.ico', route: '/donations' },
+      { label: 'Meal Planner', icon: '/app-logo/planner.ico', route: '/planner' },
+      { label: 'Setting', icon: '/app-logo/gear.ico', route: '/settings' }
    ];
 
    currentUrl = '';
