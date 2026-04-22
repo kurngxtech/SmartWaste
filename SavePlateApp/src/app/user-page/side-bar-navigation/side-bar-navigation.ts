@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { LayoutService } from '../../services/layout.service';
 
 @Component({
    selector: 'app-side-bar-navigation',
@@ -20,7 +21,7 @@ export class SideBarNavigation {
 
    currentUrl = '';
 
-   constructor(private router: Router) {
+   constructor(private router: Router, public layoutService: LayoutService) {
       this.currentUrl = this.router.url;
       this.router.events
          .pipe(filter((event) => event instanceof NavigationEnd))
