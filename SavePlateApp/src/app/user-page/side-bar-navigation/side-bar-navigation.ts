@@ -7,7 +7,7 @@ import { filter } from 'rxjs/operators';
    selector: 'app-side-bar-navigation',
    standalone: true,
    imports: [CommonModule, RouterModule],
-   templateUrl: './side-bar-navigation.html'
+   templateUrl: './side-bar-navigation.html',
 })
 export class SideBarNavigation {
    menuItems = [
@@ -15,18 +15,18 @@ export class SideBarNavigation {
       { label: 'Food And Inventory', icon: '/app-logo/diet.ico', route: '/inventory' },
       { label: 'Donation Hub', icon: '/app-logo/food-donation-navbar.ico', route: '/donations' },
       { label: 'Meal Planner', icon: '/app-logo/planner.ico', route: '/planner' },
-      { label: 'Setting', icon: '/app-logo/gear.ico', route: '/settings' }
+      { label: 'Settings', icon: '/app-logo/gear.ico', route: '/settings' },
    ];
 
    currentUrl = '';
 
    constructor(private router: Router) {
       this.currentUrl = this.router.url;
-      this.router.events.pipe(
-         filter(event => event instanceof NavigationEnd)
-      ).subscribe((event: any) => {
-         this.currentUrl = event.urlAfterRedirects;
-      });
+      this.router.events
+         .pipe(filter((event) => event instanceof NavigationEnd))
+         .subscribe((event: any) => {
+            this.currentUrl = event.urlAfterRedirects;
+         });
    }
 
    isActive(route: string): boolean {
