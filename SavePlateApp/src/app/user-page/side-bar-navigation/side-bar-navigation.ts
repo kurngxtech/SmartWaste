@@ -11,7 +11,7 @@ import { filter } from 'rxjs/operators';
 })
 export class SideBarNavigation {
    menuItems = [
-      { label: 'Dashboard and Impact', icon: '/app-logo/dashboard.ico', route: '/' },
+      { label: 'Dashboard and Impact', icon: '/app-logo/dashboard.ico', route: '/dashboard' },
       { label: 'Food And Inventory', icon: '/app-logo/diet.ico', route: '/inventory' },
       { label: 'Donation Hub', icon: '/app-logo/food-donation-navbar.ico', route: '/donations' },
       { label: 'Meal Planner', icon: '/app-logo/planner.ico', route: '/planner' },

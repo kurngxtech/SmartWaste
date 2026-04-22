@@ -8,11 +8,14 @@ import {
    RecipeSuggestion
 } from '../models/meal-plan.model';
 import { FoodItem } from '../shared/models/food-item';
+import { InventoryService } from './inventory.service';
+import { inject } from '@angular/core';
 
 @Injectable({
    providedIn: 'root',
 })
 export class MealPlannerService {
+   private inventoryService = inject(InventoryService);
    private _plans = signal<MealPlan[]>([
       {
          id: 1,
@@ -20,7 +23,7 @@ export class MealPlannerService {
          day: 'Mon',
          slot: 'Breakfast',
          date: '2026-04-20',
-         ingredients: [{ itemId: 1, itemName: 'Spinach', quantity: 1 }],
+         ingredients: [{ itemId: '1', itemName: 'Spinach', quantity: 1 }],
          reminderEnabled: true,
       },
    ]);
@@ -46,14 +49,12 @@ export class MealPlannerService {
       },
    ];
 
-   getAvailableInventory(): FoodItem[] {
-      // Mock inventory based on FoodInventoryPageComponent data
-      return [
-         { id: 1, name: 'Spinach', quantity: 2, status: 'expiring' },
-         { id: 2, name: 'Milk', quantity: 1, status: 'good' },
-         { id: 3, name: 'Chicken Breast', quantity: 3, status: 'good' },
-         { id: 4, name: 'Apples', quantity: 6, status: 'good' },
-      ];
+   getAvailableInventory(): any[] {
+      return this.inventoryService.items();
+   }
+
+   syncInventoryItem(item: any): void {
+      // Logic handled by InventoryService
    }
 
    getSuggestions(): RecipeSuggestion[] {
@@ -74,10 +75,10 @@ export class MealPlannerService {
    }
 
    readonly reservedByItemId = computed(() => {
-      const map = new Map<number | string, number>();
+      const map = new Map<string, number>();
       this.plans().forEach(plan => {
          plan.ingredients.forEach(ing => {
-            const id = ing.itemId;
+            const id = String(ing.itemId);
             map.set(id, (map.get(id) || 0) + ing.quantity);
          });
       });

@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
+import { InventoryService } from '../../services/inventory.service';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -33,13 +34,19 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
    constructor(
       private analyticsService: AnalyticsService,
+      private inventoryService: InventoryService,
       @Inject(PLATFORM_ID) private platformId: Object
    ) {}
 
    ngOnInit() {
       this.totalFoodSavedKG = this.analyticsService.getTotalFoodSavedKG();
       this.totalDonationsKG = this.analyticsService.getTotalDonationsKG();
-      this.alerts = this.analyticsService.getAlerts();
+      
+      // Combine analytics alerts with real inventory alerts
+      const analyticsAlerts = this.analyticsService.getAlerts();
+      const inventoryAlerts = this.inventoryService.getDashboardAlerts();
+      
+      this.alerts = [...inventoryAlerts, ...analyticsAlerts];
       this.alertCount = this.alerts.filter(a => a.type === 'alert').length;
       this.chartData = this.analyticsService.getMonthlyImpactChart(this.selectedRange, this.selectedCategory);
    }

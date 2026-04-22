@@ -52,7 +52,7 @@ export class FoodInventoryPageComponent implements OnInit {
    isEditMode = false;
    editingItemId: string | null = null;
 
-   today = new Date('2026-04-20T00:00:00'); // Fixed for simulation matching prompt
+   today = new Date(); // Will be synced from service in ngOnInit
 
    constructor(
       private fb: FormBuilder,
@@ -76,30 +76,16 @@ export class FoodInventoryPageComponent implements OnInit {
    }
 
    ngOnInit() {
+      this.inventoryService.refreshStatuses();
+      this.today = this.inventoryService.today;
       this.items = [...this.inventoryService.items()];
-      this.updateItemStatuses();
+      this.calculateSummary();
       this.applyFilters();
    }
 
    updateItemStatuses() {
-      this.items.forEach(item => {
-         if (item.status === 'Donated') return;
-
-         const expDate = new Date(item.expiryDate);
-         const diffTime = expDate.getTime() - this.today.getTime();
-         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-         item.daysLeft = diffDays;
-
-         if (diffDays < 0) {
-            item.status = 'Expired';
-         } else if (diffDays <= 3) {
-            item.status = 'Expiring soon';
-         } else {
-            item.status = 'Good';
-         }
-      });
-      this.inventoryService.updateItems(this.items);
+      this.inventoryService.refreshStatuses();
+      this.items = [...this.inventoryService.items()];
       this.calculateSummary();
    }
 
