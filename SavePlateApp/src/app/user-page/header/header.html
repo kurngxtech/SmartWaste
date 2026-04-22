@@ -1,16 +1,64 @@
-<header
-   class="sticky top-0 flex items-center justify-between md:justify-end h-16 px-6 bg-white border-b border-gray-200 shadow-sm z-50">
+<header class="sticky top-0 flex items-center justify-between md:justify-end h-16 px-6 bg-white border-b border-gray-200 shadow-sm z-50">
    <div class="md:hidden font-bold text-green-700 text-xl">SavePlate</div>
 
    <div class="flex items-center space-x-4">
-      <button class="relative p-2 text-gray-400 hover:text-green-600 transition-colors focus:outline-none">
-         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-            </path>
-         </svg>
-         <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-      </button>
+      <!-- Notification Wrapper -->
+      <div class="relative">
+         <button (click)="toggleNotifications($event)" class="relative p-2 text-gray-400 hover:text-green-600 transition-colors focus:outline-none rounded-full hover:bg-gray-50 border border-transparent">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+               </path>
+            </svg>
+            <!-- Badge -->
+            <span *ngIf="unreadCount > 0" class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white flex items-center justify-center text-[10px] font-bold rounded-full border-2 border-white">
+               {{ unreadCount }}
+            </span>
+         </button>
+
+         <!-- Dropdown Panel -->
+         <div *ngIf="showNotifications" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 flex flex-col overflow-hidden max-w-[calc(100vw-2rem)]">
+            <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/80 backdrop-blur-md">
+               <h3 class="font-bold text-gray-800 text-sm">Notifications</h3>
+               <span *ngIf="unreadCount > 0" class="text-xs text-green-600 font-bold bg-green-100 px-2.5 py-0.5 rounded-full">{{ unreadCount }} new</span>
+            </div>
+            
+            <div class="max-h-96 overflow-y-auto w-full">
+               <div *ngFor="let notif of notifications" (click)="handleNotificationClick(notif)"
+                  class="p-4 border-b border-gray-50 flex items-start gap-4 cursor-pointer hover:bg-gray-50 transition-colors group"
+                  [ngClass]="notif.is_read ? 'opacity-80' : 'bg-blue-50/30'">
+                  
+                  <div class="mt-1 flex-shrink-0">
+                     <div class="w-2.5 h-2.5 rounded-full" [ngClass]="notif.is_read ? 'bg-transparent' : 'bg-green-500 shadow-sm'"></div>
+                  </div>
+                  
+                  <div class="flex-1 w-full">
+                     <p class="text-sm leading-tight mb-1 transition-colors" [ngClass]="notif.is_read ? 'text-gray-600 font-normal group-hover:text-gray-800' : 'font-semibold text-gray-800 group-hover:text-green-700'">
+                        {{ notif.message }}
+                     </p>
+                     <div class="flex items-center justify-between mt-1.5">
+                        <span class="text-[11px] font-medium text-gray-500 bg-gray-100/80 border border-gray-200 px-2 py-0.5 rounded">{{ notif.item_name }}</span>
+                        <span class="text-[11px] text-gray-400 font-medium whitespace-nowrap">{{ notif.timestamp }}</span>
+                     </div>
+                  </div>
+               </div>
+
+               <div *ngIf="notifications.length === 0" class="p-8 flex flex-col items-center justify-center text-center">
+                  <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 text-gray-300">
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                  </div>
+                  <p class="text-sm text-gray-500 font-medium">You're all caught up!</p>
+                  <p class="text-xs text-gray-400 mt-1">No new notifications</p>
+               </div>
+            </div>
+            
+            <div *ngIf="notifications.length > 0" class="p-2.5 bg-gray-50 border-t border-gray-100 text-center">
+               <button (click)="markAllAsRead($event)" class="text-xs font-bold text-gray-500 hover:text-green-600 transition-colors w-full p-2 rounded-lg hover:bg-gray-100">
+                  Mark all as read
+               </button>
+            </div>
+         </div>
+      </div>
 
       <button class="relative flex items-center justify-center p-1 rounded-full hover:bg-green-50 ring-2 ring-transparent hover:ring-green-500 transition-all focus:outline-none group">
          <img src="/app-logo/user_blank.ico" alt="User" class="w-8 h-8 rounded-full object-cover opacity-75 group-hover:opacity-100 transition-opacity">
