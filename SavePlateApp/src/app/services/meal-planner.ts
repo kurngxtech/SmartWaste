@@ -95,8 +95,8 @@ export class MealPlannerService {
          }));
    });
 
-   getPlansForDayAndSlot(day: DayOfWeek, slot: MealSlot): MealPlan[] {
-      return this.plans().filter(p => p.day === day && p.slot === slot);
+   getPlansForDateAndSlot(date: string, slot: MealSlot): MealPlan[] {
+      return this.plans().filter(p => p.date === date && p.slot === slot);
    }
 
    addPlan(dto: AddMealDto): void {
