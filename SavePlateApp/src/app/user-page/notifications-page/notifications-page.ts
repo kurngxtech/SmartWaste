@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { RouterLink } from '@angular/router';
-import { InventoryService } from '../../services/inventory.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
    selector: 'app-notifications-page',
@@ -12,9 +12,8 @@ import { InventoryService } from '../../services/inventory.service';
    templateUrl: './notifications-page.html'
 })
 export class NotificationsPage {
-   notifications: any[] = [];
+   private notificationService = inject(NotificationService);
+   notifications = this.notificationService.notifications;
 
-   constructor(private inventoryService: InventoryService) {
-      this.notifications = this.inventoryService.getNotifications();
-   }
+   constructor() {}
 }

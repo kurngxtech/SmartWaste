@@ -16,11 +16,9 @@ export interface FoodItem {
 })
 export class AnalyticsService {
    private mockData: FoodItem[] = [
-      // Available & Expiring Soon
-      { id: '1', name: 'Milk (Whole)', category: 'Fridge', quantity: 1.5, unit: 'Liters', expiryDate: '2026-04-20', actionDate: null, status: 'Expiring Soon' },
+      // Available
       { id: '2', name: 'Canned Beans', category: 'Pantry', quantity: 2.0, unit: 'KG', expiryDate: '2026-12-15', actionDate: null, status: 'Available' },
       { id: '3', name: 'Frozen Peas', category: 'Freezer', quantity: 1.0, unit: 'KG', expiryDate: '2026-11-01', actionDate: null, status: 'Available' },
-      { id: '4', name: 'Bread', category: 'Pantry', quantity: 0.5, unit: 'KG', expiryDate: '2026-04-19', actionDate: null, status: 'Expiring Soon' },
       { id: '5', name: 'Chicken Breast', category: 'Freezer', quantity: 1.2, unit: 'KG', expiryDate: '2026-08-10', actionDate: null, status: 'Available' },
 
       // Saved (Consumed before expiry)
@@ -61,14 +59,6 @@ export class AnalyticsService {
    }
 
    getAlerts() {
-      const expiring = this.mockData
-         .filter(item => item.status === 'Expiring Soon')
-         .map(item => ({
-            type: 'alert',
-            title: 'EXPIRING ITEM',
-            subtitle: `${item.name} expires on ${item.expiryDate}`
-         }));
-         
       const donated = this.mockData
          .filter(item => item.status === 'Donated')
          .map(item => ({
@@ -77,7 +67,7 @@ export class AnalyticsService {
             subtitle: `${item.quantity} ${item.unit} of ${item.name} donated`
          }));
          
-      return [...expiring, ...donated];
+      return [...donated];
    }
 
    // Monthly Chart Data Generation based on filters

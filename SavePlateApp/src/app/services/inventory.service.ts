@@ -20,7 +20,7 @@ export interface InventoryItem {
 export class InventoryService {
    private _items = signal<InventoryItem[]>([
       { id: '1', name: 'Spinach', category: 'Vegetable', quantity: 2, expiryDate: '2026-04-22', location: 'Fridge', status: '', note: 'Organic' },
-      { id: '2', name: 'Milk', category: 'Dairy', quantity: 1, expiryDate: '2026-04-19', location: 'Fridge', status: '', note: '-' },
+      { id: '2', name: 'Milk', category: 'Dairy', quantity: 1, expiryDate: '2026-04-20', location: 'Fridge', status: '', note: '-' },
       { id: '3', name: 'Rice', category: 'Grain', quantity: 5, expiryDate: '2026-12-01', location: 'Pantry', status: '', note: 'Jasmine rice' },
       { id: '4', name: 'Chicken Breast', category: 'Meat', quantity: 3, expiryDate: '2026-04-25', location: 'Freezer', status: '', note: '-' },
       { id: '5', name: 'Apple', category: 'Fruit', quantity: 6, expiryDate: '2026-05-10', location: 'Fridge', status: '', note: '-' },

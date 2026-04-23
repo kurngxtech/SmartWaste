@@ -1,10 +1,11 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { InventoryService } from '../../services/inventory.service';
+import { NotificationService } from '../../services/notification.service';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -18,14 +19,18 @@ Chart.register(...registerables);
 export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    @ViewChild('impactChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
    chartInstance: Chart | null = null;
-   
+
    chartData: any[] = [];
-   alerts: any[] = [];
-   alertCount: number = 0;
-   
+   private notificationService = inject(NotificationService);
+   alerts = this.notificationService.notifications;
+
+   get alertCount(): number {
+      return this.alerts().filter(a => a.type === 'danger' || a.type === 'warning').length;
+   }
+
    totalFoodSavedKG: number = 0;
    totalDonationsKG: number = 0;
-   
+
    // Filters
    dateRangeOptions = [6, 3, 1]; // Months
    selectedRange = 6;
@@ -36,18 +41,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       private analyticsService: AnalyticsService,
       private inventoryService: InventoryService,
       @Inject(PLATFORM_ID) private platformId: Object
-   ) {}
+   ) { }
 
    ngOnInit() {
       this.totalFoodSavedKG = this.analyticsService.getTotalFoodSavedKG();
       this.totalDonationsKG = this.analyticsService.getTotalDonationsKG();
-      
-      // Combine analytics alerts with real inventory alerts
-      const analyticsAlerts = this.analyticsService.getAlerts();
-      const inventoryAlerts = this.inventoryService.getDashboardAlerts();
-      
-      this.alerts = [...inventoryAlerts, ...analyticsAlerts];
-      this.alertCount = this.alerts.filter(a => a.type === 'alert').length;
       this.chartData = this.analyticsService.getMonthlyImpactChart(this.selectedRange, this.selectedCategory);
    }
 
