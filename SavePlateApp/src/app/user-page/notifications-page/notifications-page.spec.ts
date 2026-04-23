@@ -30,12 +30,12 @@ describe('NotificationsPage', () => {
 
    it('should load notifications from InventoryService', () => {
       const expectedCount = inventoryService.getNotifications().length;
-      expect(component.notifications.length).toBe(expectedCount);
+      expect(component.notifications().length).toBe(expectedCount);
    });
 
    it('should have notification properties (id, title, type)', () => {
-      if (component.notifications.length > 0) {
-         const first = component.notifications[0];
+      if (component.notifications().length > 0) {
+         const first = component.notifications()[0];
          expect(first).toHaveProperty('id');
          expect(first).toHaveProperty('title');
          expect(first).toHaveProperty('type');
