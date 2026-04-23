@@ -2,25 +2,29 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NotificationsPage } from './notifications-page';
 import { provideRouter } from '@angular/router';
 import { InventoryService } from '../../services/inventory.service';
+import { NotificationService } from '../../services/notification.service';
+import { AnalyticsService } from '../../services/analytics.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('NotificationsPage', () => {
    let component: NotificationsPage;
    let fixture: ComponentFixture<NotificationsPage>;
-   let inventoryService: InventoryService;
+   let notificationService: NotificationService;
 
    beforeEach(async () => {
       await TestBed.configureTestingModule({
          imports: [NotificationsPage, NoopAnimationsModule],
          providers: [
             provideRouter([]),
-            InventoryService
+            InventoryService,
+            NotificationService,
+            AnalyticsService
          ]
       }).compileComponents();
 
       fixture = TestBed.createComponent(NotificationsPage);
       component = fixture.componentInstance;
-      inventoryService = TestBed.inject(InventoryService);
+      notificationService = TestBed.inject(NotificationService);
       fixture.detectChanges();
    });
 
@@ -28,14 +32,15 @@ describe('NotificationsPage', () => {
       expect(component).toBeTruthy();
    });
 
-   it('should load notifications from InventoryService', () => {
-      const expectedCount = inventoryService.getNotifications().length;
-      expect(component.notifications.length).toBe(expectedCount);
+   it('should load notifications from NotificationService', () => {
+      const expectedCount = notificationService.notifications().length;
+      expect(component.notifications().length).toBe(expectedCount);
    });
 
    it('should have notification properties (id, title, type)', () => {
-      if (component.notifications.length > 0) {
-         const first = component.notifications[0];
+      const notifications = component.notifications();
+      if (notifications.length > 0) {
+         const first = notifications[0];
          expect(first).toHaveProperty('id');
          expect(first).toHaveProperty('title');
          expect(first).toHaveProperty('type');
