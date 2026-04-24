@@ -1,9 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
+import { AppNotification } from '../../models/notification.model';
 
 @Component({
    selector: 'app-notifications-page',
@@ -13,7 +14,7 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class NotificationsPage {
    private notificationService = inject(NotificationService);
-   notifications = this.notificationService.notifications;
+   notifications: Signal<AppNotification[]> = this.notificationService.notifications;
 
    constructor() {}
 }

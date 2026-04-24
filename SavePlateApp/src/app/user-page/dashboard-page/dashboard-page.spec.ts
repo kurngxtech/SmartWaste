@@ -3,6 +3,7 @@ import { DashboardPage } from './dashboard-page';
 import { provideRouter } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { InventoryService } from '../../services/inventory.service';
+import { NotificationService } from '../../services/notification.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('DashboardPage', () => {
@@ -16,7 +17,8 @@ describe('DashboardPage', () => {
          providers: [
             provideRouter([]),
             AnalyticsService,
-            InventoryService
+            InventoryService,
+            NotificationService
          ]
       }).compileComponents();
 
@@ -59,8 +61,8 @@ describe('DashboardPage', () => {
    });
 
    it('should combine alerts from both Analytics and Inventory services', () => {
-      const analyticsAlerts = analyticsService.getAlerts().length;
+      const analyticsAlertsCount = analyticsService.getAlerts().length;
       // Note: InventoryService alerts depend on mock items and current date
-      expect(component.alerts.length).toBeGreaterThanOrEqual(analyticsAlerts);
+      expect(component.alerts().length).toBeGreaterThanOrEqual(analyticsAlertsCount);
    });
 });
