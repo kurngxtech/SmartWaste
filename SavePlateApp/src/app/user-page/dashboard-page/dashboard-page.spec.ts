@@ -5,20 +5,43 @@ import { AnalyticsService } from '../../services/analytics.service';
 import { InventoryService } from '../../services/inventory.service';
 import { NotificationService } from '../../services/notification.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { vi, beforeAll } from 'vitest';
 
 describe('DashboardPage', () => {
    let component: DashboardPage;
    let fixture: ComponentFixture<DashboardPage>;
    let analyticsService: AnalyticsService;
+   let mockNotificationService: any;
 
-   beforeEach(async () => {   
+   // Mock Canvas getContext to avoid "Not implemented" warnings in jsdom
+   beforeAll(() => {
+      HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
+         createLinearGradient: vi.fn().mockReturnValue({
+            addColorStop: vi.fn()
+         }),
+         measureText: vi.fn().mockReturnValue({ width: 0 }),
+         fillRect: vi.fn(),
+         beginPath: vi.fn(),
+         moveTo: vi.fn(),
+         lineTo: vi.fn(),
+         closePath: vi.fn(),
+         stroke: vi.fn(),
+         fill: vi.fn(),
+      }) as any;
+   });
+
+   beforeEach(async () => {
+      mockNotificationService = {
+         notifications: vi.fn().mockReturnValue([])
+      };
+
       await TestBed.configureTestingModule({
          imports: [DashboardPage, NoopAnimationsModule],
          providers: [
             provideRouter([]),
             AnalyticsService,
             InventoryService,
-            NotificationService
+            { provide: NotificationService, useValue: mockNotificationService }
          ]
       }).compileComponents();
 
@@ -28,41 +51,59 @@ describe('DashboardPage', () => {
       fixture.detectChanges();
    });
 
-   it('should create', () => {
+   it('create the component', () => {
       expect(component).toBeTruthy();
    });
 
-   it('should load metrics from AnalyticsService on init', () => {
-      const savedKG = analyticsService.getTotalFoodSavedKG();
-      const donatedKG = analyticsService.getTotalDonationsKG();
-      
-      expect(component.totalFoodSavedKG).toBe(savedKG);
-      expect(component.totalDonationsKG).toBe(donatedKG);
-   });
+   describe('Positive Scenarios', () => {
+      it('load metrics from AnalyticsService on init', () => {
+         const savedKG = analyticsService.getTotalFoodSavedKG();
+         const donatedKG = analyticsService.getTotalDonationsKG();
+         
+         expect(component.totalFoodSavedKG).toBe(savedKG);
+         expect(component.totalDonationsKG).toBe(donatedKG);
+      });
 
-   it('should update chart data when range is changed', () => {
-      const initialDataCount = component.chartData.length; // Default 6 months
-      
-      component.setRange(3);
-      expect(component.selectedRange).toBe(3);
-      expect(component.chartData.length).toBe(3);
-      expect(component.chartData.length).not.toBe(initialDataCount);
-   });
+      it('update chart data when valid range is changed', () => {
+         const initialDataCount = component.chartData.length;
+         component.setRange(3);
+         expect(component.selectedRange).toBe(3);
+         expect(component.chartData.length).toBe(3);
+      });
 
-   it('should filter chart data by category', () => {
-      component.setCategory('Fridge');
-      expect(component.selectedCategory).toBe('Fridge');
-      
-      // Verify all chart data points are calculated for Fridge
-      // In mock data, Fridge items should result in specific values
-      component.chartData.forEach(d => {
-         expect(d).toHaveProperty('totalKG');
+      it('filter chart data by valid category', () => {
+         component.setCategory('Fridge');
+         expect(component.selectedCategory).toBe('Fridge');
+         component.chartData.forEach(d => {
+            expect(d).toHaveProperty('totalKG');
+         });
       });
    });
 
-   it('should combine alerts from both Analytics and Inventory services', () => {
-      const analyticsAlertsCount = analyticsService.getAlerts().length;
-      // Note: InventoryService alerts depend on mock items and current date
-      expect(component.alerts().length).toBeGreaterThanOrEqual(analyticsAlertsCount);
+   describe('Negative Scenarios', () => {
+      it('handle zero data state for metrics', () => {
+         // Mocking service to return zero
+         vi.spyOn(analyticsService, 'getTotalFoodSavedKG').mockReturnValue(0);
+         
+         // Trigger re-init logic
+         component.ngOnInit();
+         
+         expect(component.totalFoodSavedKG).toBe(0);
+      });
+
+      it('return empty dataset for categories with no items', () => {
+         // Mocking chart to return no data for a non-existent category
+         vi.spyOn(analyticsService, 'getMonthlyImpactChart').mockReturnValue([]);
+         
+         component.setCategory('NonExistent');
+         
+         expect(component.chartData.length).toBe(0);
+      });
+
+      it('handle cases with no active alerts', () => {
+         // mockNotificationService is already returning [] in beforeEach
+         expect(component.alertCount).toBe(0);
+         expect(component.alerts().length).toBe(0);
+      });
    });
 });

@@ -15,5 +15,15 @@ export class NotificationsPage {
    private notificationService = inject(NotificationService);
    notifications = this.notificationService.notifications;
 
-   constructor() {}
+   selectedNotif: any | null = null;
+
+   constructor() { }
+
+   openNotifModal(notif: any) {
+      this.selectedNotif = notif;
+   }
+
+   closeNotifModal() {
+      this.selectedNotif = null;
+   }
 }

@@ -32,18 +32,18 @@ describe('LoginPage', () => {
       fixture.detectChanges();
    });
 
-   it('should create the component', () => {
+   it('create the component', () => {
       expect(component).toBeTruthy();
    });
 
    describe('Positive Scenarios', () => {
-      it('should have a valid form when correct data is entered', () => {
+      it('have a valid form when correct data is entered', () => {
          component.loginForm.controls['email'].setValue('dummyaccount@gmail.com');
          component.loginForm.controls['password'].setValue('dummy1234!');
          expect(component.loginForm.valid).toBeTruthy();
       });
 
-      it('should navigate to dashboard if email exists in the system', () => {
+      it('navigate to dashboard if email exists in the system', () => {
          component.loginForm.controls['email'].setValue('dummyaccount@gmail.com');
          component.loginForm.controls['password'].setValue('dummy1234!');
          mockAuthService.checkEmailExists.mockReturnValue(true);

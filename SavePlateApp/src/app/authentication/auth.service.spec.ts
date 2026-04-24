@@ -17,12 +17,12 @@ describe('AuthService', () => {
       vi.restoreAllMocks();
    });
 
-   it('should be created', () => {
+   it('be created', () => {
       expect(service).toBeTruthy();
    });
 
    describe('sendVerificationEmail', () => {
-      it('should return false if email does not end with @gmail.com', () => {
+      it('return false if email does not end with @gmail.com', () => {
          const user = { email: 'test@yahoo.com', fullName: 'Test User' };
          const result = service.sendVerificationEmail(user);
 
@@ -31,7 +31,7 @@ describe('AuthService', () => {
          expect((service as any).pendingRegistrations.has(user.email)).toBe(false);
       });
 
-      it('should return true and generate a 6-digit code for @gmail.com emails', () => {
+      it('return true and generate a 6-digit code for @gmail.com emails', () => {
          const user = { email: 'test@gmail.com', fullName: 'Test User' };
 
          // Spy on Math.random to control the generated code
@@ -48,7 +48,7 @@ describe('AuthService', () => {
          expect(console.log).toHaveBeenCalled();
       });
 
-      it('should handle case-insensitive @gmail.com emails', () => {
+      it('handle case-insensitive @gmail.com emails', () => {
          const user = { email: 'TEST@GMAIL.COM', fullName: 'Test User' };
          const result = service.sendVerificationEmail(user);
 
@@ -66,7 +66,7 @@ describe('AuthService', () => {
          (service as any).pendingRegistrations.set(mockUser.email, { user: mockUser, code: mockCode });
       });
 
-      it('should return true and register user if code is correct', () => {
+      it('return true and register user if code is correct', () => {
          const result = service.verifyCodeAndRegister(mockUser.email, mockCode);
 
          expect(result).toBe(true);
@@ -75,7 +75,7 @@ describe('AuthService', () => {
          expect(console.log).toHaveBeenCalledWith('User registered successfully:', mockUser);
       });
 
-      it('should return false if code is incorrect', () => {
+      it('return false if code is incorrect', () => {
          const result = service.verifyCodeAndRegister(mockUser.email, '000000');
 
          expect(result).toBe(false);
@@ -83,7 +83,7 @@ describe('AuthService', () => {
          expect((service as any).users).not.toContain(mockUser); // Should NOT be added
       });
 
-      it('should return false if email has no pending registration', () => {
+      it('return false if email has no pending registration', () => {
          const result = service.verifyCodeAndRegister('unknown@gmail.com', mockCode);
 
          expect(result).toBe(false);
@@ -91,7 +91,7 @@ describe('AuthService', () => {
    });
 
    describe('register', () => {
-      it('should add user directly to the users array', () => {
+      it('add user directly to the users array', () => {
          const user = { email: 'direct@gmail.com', fullName: 'Direct User' };
 
          service.register(user);
@@ -102,14 +102,14 @@ describe('AuthService', () => {
    });
 
    describe('checkEmailExists', () => {
-      it('should return true if email exists in registered users', () => {
+      it('return true if email exists in registered users', () => {
          const user = { email: 'exists@gmail.com', fullName: 'Existing User' };
          (service as any).users.push(user);
 
          expect(service.checkEmailExists('exists@gmail.com')).toBe(true);
       });
 
-      it('should return false if email does not exist in registered users', () => {
+      it('return false if email does not exist in registered users', () => {
          expect(service.checkEmailExists('notfound@gmail.com')).toBe(false);
       });
    });
