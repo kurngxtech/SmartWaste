@@ -1,0 +1,13 @@
+Unit Testing (individual);;;;;;
+Tester Name;Date ;;;;;
+Test Description;Verify username/password ;;;;;
+Test Case ID;TC1;;;;;
+Test Scenario;Customer Login-in with valid data ;;;;;
+Test Data ;"Login Name : seetha
+Password : abc123";;;;;
+Source Code (javascript/php);if -else statement;;;;;
+Expected Output;Directed to Homepage http://…....;;;;;
+Actual Output;Print Screen;;;;;
+Pass/Fail;;;;;;
+Remarks;;;;;;
+TC2;Customer Login-in with invalid UserID and Password;;;;;
