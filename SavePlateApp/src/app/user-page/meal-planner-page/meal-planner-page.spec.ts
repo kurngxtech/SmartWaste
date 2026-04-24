@@ -11,10 +11,7 @@ describe('MealPlannerPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MealPlannerPage, NoopAnimationsModule],
-      providers: [
-        provideRouter([]),
-        provideHttpClient()
-      ]
+      providers: [provideRouter([]), provideHttpClient()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(MealPlannerPage);
