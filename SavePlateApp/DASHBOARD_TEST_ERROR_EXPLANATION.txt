@@ -1,0 +1,32 @@
+DASHBOARD TEST ERROR EXPLANATION
+===============================
+
+Issue: 
+The test "should combine alerts from both Analytics and Inventory services" failed with:
+"AssertionError: expected 0 to be greater than or equal to 3"
+
+STEP-BY-STEP BREAKDOWN
+----------------------
+
+Step 1: The Component Change
+The 'alerts' property in DashboardPage was changed from a standard array (any[]) to an Angular Signal (Signal<AppNotification[]>). This change was necessary to ensure notifications are synchronized across the entire app via the NotificationService.
+
+Step 2: Why the Test Failed
+In JavaScript/TypeScript, an Angular Signal is a function. When the test accessed 'component.alerts.length', it was looking for the '.length' property of the function object itself, which is 0 (representing the number of arguments the function takes). It was NOT looking at the number of items inside the notification list.
+
+Step 3: Missing Dependencies
+The component was updated to require 'NotificationService'. The testing environment (TestBed) was not updated to provide this service, meaning the component could not be properly initialized in the test mock environment.
+
+THE FIX
+-------
+
+1. Update the Test Syntax:
+To access the data inside a Signal, you must invoke it like a function. 
+Old code: expect(component.alerts.length)...
+New code: expect(component.alerts().length)...
+
+2. Update the Test Environment:
+Added 'NotificationService' to the 'providers' array in the TestBed configuration within the spec file. This ensures the component has access to its required services during the test run.
+
+Conclusion:
+Always remember to call signals with parentheses () when accessing their values in TypeScript code or unit tests.
