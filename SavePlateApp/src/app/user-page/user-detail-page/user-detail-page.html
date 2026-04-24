@@ -1,0 +1,28 @@
+<div class="flex h-screen bg-gray-100 font-sans overflow-hidden">
+   <app-side-bar-navigation></app-side-bar-navigation>
+
+   <div class="flex flex-col flex-1 overflow-hidden">
+      <app-header></app-header>
+
+      <div class="flex-1 flex items-center justify-center bg-gray-50 p-6">
+         <div
+            class="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center max-w-md w-full hover:shadow-md transition-shadow">
+            <div
+               class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+               </svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-2">User Profile</h2>
+            <p class="text-sm text-gray-500">This feature will be continued on Iteration 2.</p>
+            <button
+               class="mt-6 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors cursor-pointer"
+               routerLink="/dashboard">
+               Return to Dashboard
+            </button>
+         </div>
+      </div>
+
+   </div>
+</div>

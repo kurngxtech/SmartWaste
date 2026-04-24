@@ -4,18 +4,12 @@ import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
+import { MealPlannerService } from '../../services/meal-planner';
+import { InventoryService, InventoryItem } from '../../services/inventory.service';
+import { Router } from '@angular/router';
 
-export interface InventoryItem {
-   id: string;
-   name: string;
-   category: string;
-   quantity: number;
-   expiryDate: string;
-   location: string;
-   status: string;
-   note: string;
-   daysLeft?: number;
-}
+// Interface moved to service
+
 
 @Component({
    selector: 'app-food-inventory-page',
@@ -24,14 +18,7 @@ export interface InventoryItem {
    templateUrl: './food-inventory-page.html'
 })
 export class FoodInventoryPageComponent implements OnInit {
-   items: InventoryItem[] = [
-      { id: '1', name: 'Spinach', category: 'Vegetable', quantity: 2, expiryDate: '2026-04-22', location: 'Fridge', status: '', note: 'Organic' },
-      { id: '2', name: 'Milk', category: 'Dairy', quantity: 1, expiryDate: '2026-04-19', location: 'Fridge', status: '', note: '-' },
-      { id: '3', name: 'Rice', category: 'Grain', quantity: 5, expiryDate: '2026-12-01', location: 'Pantry', status: '', note: 'Jasmine rice' },
-      { id: '4', name: 'Chicken Breast', category: 'Meat', quantity: 3, expiryDate: '2026-04-25', location: 'Freezer', status: '', note: '-' },
-      { id: '5', name: 'Apple', category: 'Fruit', quantity: 6, expiryDate: '2026-05-10', location: 'Fridge', status: '', note: '-' },
-      { id: '6', name: 'Pork Belly', category: 'Meat', quantity: 1, expiryDate: '2026-04-25', location: 'Freezer', status: '', note: '-' }
-   ];
+   items: InventoryItem[] = [];
 
    filteredItems: InventoryItem[] = [];
 
@@ -62,9 +49,17 @@ export class FoodInventoryPageComponent implements OnInit {
    addForm: FormGroup;
    donateForm: FormGroup;
 
-   today = new Date('2026-04-20T00:00:00'); // Fixed for simulation matching prompt
+   isEditMode = false;
+   editingItemId: string | null = null;
 
-   constructor(private fb: FormBuilder) {
+   today = new Date(); // Will be synced from service in ngOnInit
+
+   constructor(
+      private fb: FormBuilder,
+      private mealPlannerService: MealPlannerService,
+      private inventoryService: InventoryService,
+      private router: Router
+   ) {
       this.addForm = this.fb.group({
          name: ['', Validators.required],
          category: ['Vegetable', Validators.required],
@@ -81,28 +76,16 @@ export class FoodInventoryPageComponent implements OnInit {
    }
 
    ngOnInit() {
-      this.updateItemStatuses();
+      this.inventoryService.refreshStatuses();
+      this.today = this.inventoryService.today;
+      this.items = [...this.inventoryService.items()];
+      this.calculateSummary();
       this.applyFilters();
    }
 
    updateItemStatuses() {
-      this.items.forEach(item => {
-         if (item.status === 'Donated') return;
-
-         const expDate = new Date(item.expiryDate);
-         const diffTime = expDate.getTime() - this.today.getTime();
-         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-         item.daysLeft = diffDays;
-
-         if (diffDays < 0) {
-            item.status = 'Expired';
-         } else if (diffDays <= 3) {
-            item.status = 'Expiring soon';
-         } else {
-            item.status = 'Good';
-         }
-      });
+      this.inventoryService.refreshStatuses();
+      this.items = [...this.inventoryService.items()];
       this.calculateSummary();
    }
 
@@ -129,9 +112,25 @@ export class FoodInventoryPageComponent implements OnInit {
       this.applyFilters();
    }
 
-   // Add Item Logic
+   // Add/Edit Item Logic
    openAddModal() {
+      this.isEditMode = false;
+      this.editingItemId = null;
       this.addForm.reset({ category: 'Vegetable', location: 'Fridge', quantity: 1 });
+      this.showAddModal = true;
+   }
+
+   openEditModal(item: InventoryItem) {
+      this.isEditMode = true;
+      this.editingItemId = item.id;
+      this.addForm.patchValue({
+         name: item.name,
+         category: item.category,
+         location: item.location,
+         quantity: item.quantity,
+         expiryDate: item.expiryDate,
+         note: item.note === '-' ? '' : item.note
+      });
       this.showAddModal = true;
    }
 
@@ -142,20 +141,70 @@ export class FoodInventoryPageComponent implements OnInit {
    saveNewItem() {
       if (this.addForm.invalid) return;
       const val = this.addForm.value;
-      const newItem: InventoryItem = {
-         id: Math.random().toString(),
-         name: val.name,
-         category: val.category,
-         location: val.location,
-         quantity: val.quantity,
-         expiryDate: val.expiryDate,
-         note: val.note || '-',
-         status: ''
-      };
-      this.items.push(newItem);
+      
+      if (this.isEditMode && this.editingItemId) {
+         const itemIndex = this.items.findIndex(i => i.id === this.editingItemId);
+         if (itemIndex > -1) {
+            this.items[itemIndex] = {
+               ...this.items[itemIndex],
+               name: val.name,
+               category: val.category,
+               location: val.location,
+               quantity: val.quantity,
+               expiryDate: val.expiryDate,
+               note: val.note || '-'
+            };
+         }
+      } else {
+         const newItem: InventoryItem = {
+            id: Math.random().toString(),
+            name: val.name,
+            category: val.category,
+            location: val.location,
+            quantity: val.quantity,
+            expiryDate: val.expiryDate,
+            note: val.note || '-',
+            status: ''
+         };
+         this.items.push(newItem);
+      }
+      this.inventoryService.updateItems(this.items);
       this.updateItemStatuses();
       this.applyFilters();
       this.closeAddModal();
+   }
+
+   // Mark as Used Logic
+   markAsUsed(item: InventoryItem) {
+      item.isUsed = true;
+      this.inventoryService.updateItems(this.items);
+   }
+
+   undoMarkAsUsed(item: InventoryItem) {
+      item.isUsed = false;
+      this.inventoryService.updateItems(this.items);
+   }
+
+   // Plan for Meal Logic
+   planForMeal(item: InventoryItem) {
+      item.isPlanned = true;
+      this.inventoryService.updateItems(this.items);
+      
+      // Sync item with meal planner inventory
+      this.mealPlannerService.syncInventoryItem(item);
+      
+      // Add it as a reserved ingredient for a new meal plan
+      this.mealPlannerService.addPlan({
+         name: 'Meal with ' + item.name,
+         day: 'Mon',
+         slot: 'Dinner',
+         date: '2026-04-20',
+         ingredients: [{ itemId: item.id, itemName: item.name, quantity: 1 }],
+         reminderEnabled: false
+      });
+      
+      // Navigate to meal planner page
+      this.router.navigate(['/meal-planner']);
    }
 
    // Donate Logic
@@ -174,6 +223,7 @@ export class FoodInventoryPageComponent implements OnInit {
       if (this.donateForm.invalid || !this.itemToDonate) return;
 
       this.itemToDonate.status = 'Donated';
+      this.inventoryService.updateItems(this.items);
       this.calculateSummary();
       this.applyFilters();
       this.closeDonateModal();
@@ -193,6 +243,7 @@ export class FoodInventoryPageComponent implements OnInit {
    confirmDelete() {
       if (!this.itemToDelete) return;
       this.items = this.items.filter(i => i.id !== this.itemToDelete!.id);
+      this.inventoryService.updateItems(this.items);
       this.updateItemStatuses();
       this.applyFilters();
       this.closeDeleteModal();

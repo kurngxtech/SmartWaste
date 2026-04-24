@@ -15,24 +15,21 @@
 
          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-               <div
-                  class="w-10 h-10 rounded bg-green-100 flex items-center justify-center mb-4">
+               <div class="w-10 h-10 rounded bg-green-100 flex items-center justify-center mb-4">
                   <img src="/app-logo/total-food-dashboard.ico" alt="Food Saved" class="w-6 h-6 object-contain">
                </div>
                <h3 class="text-3xl font-black text-gray-800">{{ totalFoodSavedKG | number:'1.1-1' }} KG</h3>
                <p class="text-sm text-gray-500 mt-1 font-medium">Total Food Saved</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-               <div
-                  class="w-10 h-10 rounded bg-blue-100 flex items-center justify-center mb-4">
+               <div class="w-10 h-10 rounded bg-blue-100 flex items-center justify-center mb-4">
                   <img src="/app-logo/food-donation-dashboard.ico" alt="Donations Made" class="w-6 h-6 object-contain">
                </div>
                <h3 class="text-3xl font-black text-gray-800">{{ totalDonationsKG | number:'1.1-1' }} KG</h3>
                <p class="text-sm text-gray-500 mt-1 font-medium">Donations Made</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-               <div
-                  class="w-10 h-10 rounded bg-yellow-100 flex items-center justify-center mb-4">
+               <div class="w-10 h-10 rounded bg-yellow-100 flex items-center justify-center mb-4">
                   <img src="/app-logo/gold-medal.ico" alt="Gold Tier" class="w-6 h-6 object-contain">
                </div>
                <h3 class="text-3xl font-black text-yellow-600">GOLD</h3>
@@ -54,12 +51,12 @@
                <div class="flex justify-between items-center mb-8 flex-wrap gap-2">
                   <h2 class="text-lg font-bold text-gray-800">Monthly Impact Graph</h2>
                   <div class="flex space-x-2">
-                     <select 
+                     <select
                         class="text-sm text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-md font-medium outline-none cursor-pointer"
                         (change)="setCategory($any($event.target).value)">
                         <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
                      </select>
-                     <select 
+                     <select
                         class="text-sm text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-md font-medium outline-none cursor-pointer"
                         (change)="setRange(+$any($event.target).value)">
                         <option [value]="6">Last 6 Months</option>
@@ -79,18 +76,25 @@
                class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden hover:shadow-md transition-shadow">
                <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                   <h2 class="text-lg font-bold text-gray-800">NOTIFICATIONS</h2>
-                  <span class="bg-blue-100 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">{{ alerts.length }} New</span>
+                  <span class="bg-blue-100 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">{{ alerts().length }}
+                     New</span>
                </div>
 
                <div class="flex-1 overflow-y-auto p-2">
-                  <div *ngFor="let alert of alerts"
+                  <div *ngFor="let alert of alerts()"
                      class="p-4 mb-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 cursor-pointer transition-colors group">
                      <div class="flex items-start">
-                        <div class="mt-1 w-2 h-2 rounded-full mr-3" [ngClass]="alert.type === 'alert' ? 'bg-red-400' : 'bg-green-400'"></div>
+                        <div class="mt-1 w-2 h-2 rounded-full mr-3"
+                           [ngClass]="{
+                              'bg-red-400': alert.type === 'danger',
+                              'bg-amber-400': alert.type === 'warning',
+                              'bg-green-400': alert.type === 'success',
+                              'bg-blue-400': alert.type === 'info'
+                           }"></div>
                         <div>
                            <h4 class="text-sm font-bold text-gray-800 group-hover:text-green-700 transition-colors">{{
                               alert.title }}</h4>
-                           <p class="text-xs text-gray-500 mt-1">{{ alert.subtitle }}</p>
+                           <p class="text-xs text-gray-500 mt-1">{{ alert.description }}</p>
                         </div>
                      </div>
                   </div>
@@ -98,7 +102,8 @@
 
                <div class="p-4 border-t border-gray-100 bg-gray-50">
                   <button
-                     class="w-full py-2.5 text-sm font-bold text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+                     class="w-full py-2.5 text-sm font-bold text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                     routerLink="/notifications">
                      VIEW ALL NOTIFICATIONS
                   </button>
                </div>

@@ -109,7 +109,11 @@ export class AddMealModalComponent implements OnInit {
       const targetIdx = dayMap[day] === 0 ? 6 : dayMap[day] - 1;
       const target = new Date(monday);
       target.setDate(monday.getDate() + targetIdx);
-      return target.toISOString().split('T')[0];
+      
+      const y = target.getFullYear();
+      const m = target.getMonth() + 1;
+      const d = target.getDate();
+      return `${y}-${m < 10 ? '0' + m : m}-${d < 10 ? '0' + d : d}`;
    }
 
    onSave(): void {

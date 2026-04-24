@@ -4,7 +4,15 @@ import { Injectable } from '@angular/core';
    providedIn: 'root'
 })
 export class AuthService {
-   private users: any[] = [];
+   // Initialized with the dummy account for testing Iteration 1
+   private users: any[] = [
+      {
+         fullName: 'Dummy User',
+         email: 'dummyaccount@gmail.com',
+         password: 'dummy1234!',
+         householdSize: 2
+      }
+   ];
    private pendingRegistrations: Map<string, { user: any, code: string }> = new Map();
 
    constructor() { }
@@ -13,16 +21,16 @@ export class AuthService {
       if (!user.email.toLowerCase().endsWith('@gmail.com')) {
          return false;
       }
-      
+
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       this.pendingRegistrations.set(user.email, { user, code });
-      
+
       console.log(`[SYSTEM] ------------------------------------------------`);
       console.log(`[SYSTEM] Simulated Email Sent to: ${user.email}`);
       console.log(`[SYSTEM] Subject: Welcome to SavePlate! Verification Code`);
       console.log(`[SYSTEM] Message: Hello ${user.fullName}, your 6-digit verification code is: ${code}`);
       console.log(`[SYSTEM] ------------------------------------------------`);
-      
+
       return true;
    }
 
@@ -43,6 +51,6 @@ export class AuthService {
    }
 
    checkEmailExists(email: string): boolean {
-      return this.users.some(u => u.email === email);
+      return this.users.some(u => u.email.toLowerCase() === email.toLowerCase());
    }
 }

@@ -82,8 +82,11 @@ export class MealPlannerPage {
 
    readonly plannedCount = computed(() => this.svc.plans().length);
 
-   getPlansForCell(day: DayOfWeek, slot: MealSlot): MealPlan[] {
-      return this.svc.getPlansForDayAndSlot(day, slot);
+   getPlansForCell(date: Date, slot: MealSlot): MealPlan[] {
+      const m = date.getMonth() + 1;
+      const d = date.getDate();
+      const dateStr = `${date.getFullYear()}-${m < 10 ? '0' + m : m}-${d < 10 ? '0' + d : d}`;
+      return this.svc.getPlansForDateAndSlot(dateStr, slot);
    }
 
    openModal(day: DayOfWeek, slot: MealSlot, recipe: Recipe | null = null): void {

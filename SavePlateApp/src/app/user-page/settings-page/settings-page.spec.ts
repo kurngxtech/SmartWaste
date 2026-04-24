@@ -1,17 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SettingsPage } from './settings-page';
+import { provideRouter } from '@angular/router';
 
-import { Authentication } from './authentication';
-
-describe('Authentication', () => {
-   let component: Authentication;
-   let fixture: ComponentFixture<Authentication>;
+describe('SettingsPage', () => {
+   let component: SettingsPage;
+   let fixture: ComponentFixture<SettingsPage>;
 
    beforeEach(async () => {
       await TestBed.configureTestingModule({
-         imports: [Authentication],
+         imports: [SettingsPage],
+         providers: [provideRouter([])]
       }).compileComponents();
 
-      fixture = TestBed.createComponent(Authentication);
+      fixture = TestBed.createComponent(SettingsPage);
       component = fixture.componentInstance;
       await fixture.whenStable();
    });
