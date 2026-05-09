@@ -1,1 +1,434 @@
-<p>app-settings-page works!</p>
+<div class="flex h-screen bg-gray-100 font-sans overflow-hidden">
+   <app-side-bar-navigation></app-side-bar-navigation>
+
+   <div class="flex flex-col flex-1 overflow-hidden">
+      <app-header></app-header>
+
+      <div class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
+         <div class="max-w-4xl mx-auto">
+
+            <!-- Back Button -->
+            <button routerLink="/dashboard"
+               class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-green-700 transition-colors mb-6 bg-transparent border-none cursor-pointer p-0 group">
+               <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                     d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+               </svg>
+               Back to Dashboard
+            </button>
+
+            <!-- Header -->
+            <div class="mb-8">
+               <h1 class="text-2xl md:text-3xl font-bold text-gray-900 m-0 mb-1">Settings</h1>
+               <p class="text-[15px] text-gray-500 m-0 leading-relaxed">Manage your privacy, notifications, household
+                  and community preferences.</p>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div
+               class="flex gap-1 bg-white border border-gray-200 rounded-2xl p-1.5 mb-8 shadow-sm overflow-x-auto scrollbar-hide">
+               <button *ngFor="let tab of [
+            {id:'privacy', label:'Privacy & Security', icon:'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'},
+            {id:'notifications', label:'Notifications', icon:'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'},
+            {id:'household', label:'Household', icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'},
+            {id:'community', label:'Donations & Community', icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'}
+          ]" (click)="setTab(tab.id)"
+                  [class]="activeTab() === tab.id 
+              ? 'flex items-center gap-2 px-4 py-2.5 bg-green-50 text-green-700 rounded-xl text-[13px] font-bold transition-all shrink-0' 
+              : 'flex items-center gap-2 px-4 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl text-[13px] font-medium transition-all shrink-0 cursor-pointer border-none bg-transparent'">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="tab.icon" />
+                  </svg>
+                  <span class="whitespace-nowrap">{{ tab.label }}</span>
+               </button>
+            </div>
+
+            <!-- ── PRIVACY & SECURITY SECTION ── -->
+            <div *ngIf="activeTab() === 'privacy'" class="space-y-4 animate-in fade-in duration-300">
+
+               <!-- 2FA Card -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between gap-4">
+                     <div class="flex items-start gap-4">
+                        <div
+                           class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center shrink-0">
+                           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                           </svg>
+                        </div>
+                        <div>
+                           <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Two-Factor Authentication (2FA)
+                           </h3>
+                           <p class="text-sm text-gray-500 m-0">Add an extra layer of security to your account with OTP
+                              verification.</p>
+                        </div>
+                     </div>
+                     <button (click)="toggleTwoFactor()"
+                        [class]="twoFactorEnabled() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
+                        <span
+                           [class]="twoFactorEnabled() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
+                     </button>
+                  </div>
+               </div>
+
+               <!-- Donation Visibility -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Donation Visibility</h3>
+                        <p class="text-sm text-gray-500 m-0">Control who can see your donations in the community hub.
+                        </p>
+                     </div>
+                  </div>
+                  <div class="flex gap-3 ml-16">
+                     <button (click)="donationVisibility.set('public')"
+                        [class]="donationVisibility() === 'public' ? 'px-5 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                        🌐 Public
+                     </button>
+                     <button (click)="donationVisibility.set('private')"
+                        [class]="donationVisibility() === 'private' ? 'px-5 py-2.5 bg-gray-900 text-white border border-gray-900 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                        🔒 Private
+                     </button>
+                  </div>
+               </div>
+
+               <!-- Location Privacy -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Location Privacy</h3>
+                        <p class="text-sm text-gray-500 m-0">Choose how your pickup address appears to other users.</p>
+                     </div>
+                  </div>
+                  <div class="flex flex-wrap gap-3 ml-16">
+                     <button (click)="locationPrivacy.set('exact')"
+                        [class]="locationPrivacy() === 'exact' ? 'px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                        📍 Exact Address
+                     </button>
+                     <button (click)="locationPrivacy.set('neighborhood')"
+                        [class]="locationPrivacy() === 'neighborhood' ? 'px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                        🗺️ Neighborhood Radius
+                     </button>
+                  </div>
+               </div>
+
+               <!-- Data Analytics -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between gap-4">
+                     <div class="flex items-start gap-4">
+                        <div
+                           class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
+                           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                           </svg>
+                        </div>
+                        <div>
+                           <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Data Usage for Analytics</h3>
+                           <p class="text-sm text-gray-500 m-0">Contribute anonymous data to community-wide impact
+                              reports.</p>
+                        </div>
+                     </div>
+                     <button (click)="toggleDataAnalytics()"
+                        [class]="dataAnalyticsOptIn() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
+                        <span
+                           [class]="dataAnalyticsOptIn() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
+                     </button>
+                  </div>
+               </div>
+            </div>
+
+            <!-- ── NOTIFICATIONS SECTION ── -->
+            <div *ngIf="activeTab() === 'notifications'" class="space-y-4 animate-in fade-in duration-300">
+
+               <!-- Expiry Threshold -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Expiry Alert Threshold</h3>
+                        <p class="text-sm text-gray-500 m-0">How many days before expiry should we notify you?</p>
+                     </div>
+                  </div>
+                  <div class="flex flex-wrap gap-2 ml-16">
+                     <button *ngFor="let d of [1, 2, 3, 5, 7]" (click)="expiryThreshold.set(d)"
+                        [class]="expiryThreshold() === d ? 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold shadow-sm transition-all cursor-pointer border-none' : 'px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition-all cursor-pointer border-none'">
+                        {{ d }} {{ d === 1 ? 'day' : 'days' }}
+                     </button>
+                  </div>
+               </div>
+
+               <!-- Alert Categories -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                     </div>
+                     <h3 class="text-[15px] font-bold text-gray-900 mt-2.5">Alert Categories</h3>
+                  </div>
+
+                  <div class="ml-16 space-y-6">
+                     <!-- Item 1 -->
+                     <div class="flex items-center justify-between pb-6 border-b border-gray-100">
+                        <div>
+                           <p class="text-sm font-bold text-gray-800 m-0 mb-0.5">Inventory Expiry Alerts</p>
+                           <p class="text-xs text-gray-500 m-0">Get notified when items are nearing expiry.</p>
+                        </div>
+                        <button (click)="alertInventoryExpiry.set(!alertInventoryExpiry())"
+                           [class]="alertInventoryExpiry() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
+                           <span
+                              [class]="alertInventoryExpiry() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
+                        </button>
+                     </div>
+                     <!-- Item 2 -->
+                     <div class="flex items-center justify-between pb-6 border-b border-gray-100">
+                        <div>
+                           <p class="text-sm font-bold text-gray-800 m-0 mb-0.5">Donation Claim Updates</p>
+                           <p class="text-xs text-gray-500 m-0">Updates when someone claims your donation.</p>
+                        </div>
+                        <button (click)="alertDonationUpdates.set(!alertDonationUpdates())"
+                           [class]="alertDonationUpdates() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
+                           <span
+                              [class]="alertDonationUpdates() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
+                        </button>
+                     </div>
+                     <!-- Item 3 -->
+                     <div class="flex items-center justify-between">
+                        <div>
+                           <p class="text-sm font-bold text-gray-800 m-0 mb-0.5">Meal Planning Reminders</p>
+                           <p class="text-xs text-gray-500 m-0">Suggestions to use items before they expire.</p>
+                        </div>
+                        <button (click)="alertMealReminders.set(!alertMealReminders())"
+                           [class]="alertMealReminders() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
+                           <span
+                              [class]="alertMealReminders() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
+                        </button>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Delivery Channel -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Delivery Channel</h3>
+                        <p class="text-sm text-gray-500 m-0">Choose how you receive your alerts.</p>
+                     </div>
+                  </div>
+                  <div class="flex flex-wrap gap-3 ml-16">
+                     <button (click)="deliveryChannel.set('app')"
+                        [class]="deliveryChannel() === 'app' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer'">📱
+                        In-App</button>
+                     <button (click)="deliveryChannel.set('email')"
+                        [class]="deliveryChannel() === 'email' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer'">✉️
+                        Email</button>
+                     <button (click)="deliveryChannel.set('both')"
+                        [class]="deliveryChannel() === 'both' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer'">🔔
+                        Both</button>
+                  </div>
+               </div>
+            </div>
+
+            <!-- ── HOUSEHOLD SECTION ── -->
+            <div *ngIf="activeTab() === 'household'" class="space-y-4 animate-in fade-in duration-300">
+
+               <!-- Household Size -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Household Size</h3>
+                        <p class="text-sm text-gray-500 m-0">Adjust quantities for meal planning suggestions.</p>
+                     </div>
+                  </div>
+
+                  <div class="flex items-center gap-6 ml-16">
+                     <div class="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-1">
+                        <button (click)="householdSize.set(householdSize() > 1 ? householdSize() - 1 : 1)"
+                           class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-white rounded-xl transition-all border-none bg-transparent cursor-pointer font-bold text-lg">
+                           −
+                        </button>
+                        <span class="w-12 text-center text-xl font-bold text-gray-900">{{ householdSize() }}</span>
+                        <button (click)="householdSize.set(householdSize() + 1)"
+                           class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-white rounded-xl transition-all border-none bg-transparent cursor-pointer font-bold text-lg">
+                           +
+                        </button>
+                     </div>
+                     <p class="text-sm font-medium text-gray-500 m-0">{{ householdSize() === 1 ? 'Person' : 'People' }}
+                        in household</p>
+                  </div>
+               </div>
+
+               <!-- Storage Locations -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Default Storage Locations</h3>
+                        <p class="text-sm text-gray-500 m-0">Speed up "Manage Food Inventory" with pre-defined areas.
+                        </p>
+                     </div>
+                  </div>
+
+                  <div class="ml-16 space-y-4">
+                     <div class="flex flex-wrap gap-2">
+                        <div *ngFor="let loc of storageLocations()"
+                           class="inline-flex items-center gap-2 px-3 py-2 bg-orange-50 text-orange-700 border border-orange-100 rounded-xl text-[13px] font-bold">
+                           📦 {{ loc }}
+                           <button (click)="removeStorageLocation(loc)"
+                              class="text-orange-400 hover:text-red-500 bg-transparent border-none p-0 cursor-pointer text-base leading-none">×</button>
+                        </div>
+                     </div>
+                     <div class="flex gap-2">
+                        <input [(ngModel)]="newStorageLocation" (keyup.enter)="addStorageLocation()"
+                           placeholder="e.g. Basement Freezer"
+                           class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all" />
+                        <button (click)="addStorageLocation()"
+                           class="px-6 py-2.5 bg-green-600 text-white rounded-xl text-[13px] font-bold hover:bg-green-700 border-none cursor-pointer transition-all">Add</button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- ── COMMUNITY SECTION ── -->
+            <div *ngIf="activeTab() === 'community'" class="space-y-4 animate-in fade-in duration-300">
+
+               <!-- Saved Pickup Locations -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Saved Pickup Locations</h3>
+                        <p class="text-sm text-gray-500 m-0">Addresses for quick selection during donation listing.</p>
+                     </div>
+                  </div>
+
+                  <div class="ml-16 space-y-4">
+                     <div class="flex flex-wrap gap-2">
+                        <div *ngFor="let loc of pickupLocations()"
+                           class="inline-flex items-center gap-2 px-3 py-2 bg-teal-50 text-teal-700 border border-teal-100 rounded-xl text-[13px] font-bold">
+                           📍 {{ loc }}
+                           <button (click)="removePickupLocation(loc)"
+                              class="text-teal-400 hover:text-red-500 bg-transparent border-none p-0 cursor-pointer text-base leading-none">×</button>
+                        </div>
+                     </div>
+                     <div class="flex gap-2">
+                        <input [(ngModel)]="newPickupLocation" (keyup.enter)="addPickupLocation()"
+                           placeholder="e.g. Community Center"
+                           class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all" />
+                        <button (click)="addPickupLocation()"
+                           class="px-6 py-2.5 bg-green-600 text-white rounded-xl text-[13px] font-bold hover:bg-green-700 border-none cursor-pointer transition-all">Add</button>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Preferred Categories -->
+               <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <div class="flex items-start gap-4 mb-6">
+                     <div
+                        class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                     </div>
+                     <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 m-0 mb-0.5">Preferred Food Categories</h3>
+                        <p class="text-sm text-gray-500 m-0">Applied as default filters in the Community Hub.</p>
+                     </div>
+                  </div>
+
+                  <div class="flex flex-wrap gap-2 ml-16">
+                     <button *ngFor="let cat of allCategories" (click)="toggleCategory(cat)"
+                        [class]="preferredCategories().includes(cat) 
+                  ? 'px-4 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-[13px] font-bold transition-all cursor-pointer' 
+                  : 'px-4 py-2 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-[13px] font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                        {{ cat }}
+                     </button>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="mt-12 flex justify-end">
+               <button (click)="saveSettings()"
+                  class="px-10 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg shadow-green-200 hover:shadow-green-300 transform active:scale-95 transition-all border-none cursor-pointer">
+                  Save Changes
+               </button>
+            </div>
+
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Toast Notification -->
+<div *ngIf="showToast()"
+   class="fixed bottom-8 right-8 z-50 flex items-center gap-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-black/20 animate-in slide-in-from-bottom-4 duration-300">
+   <div class="w-8 h-8 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+   </div>
+   <div>
+      <p class="text-sm font-bold m-0 leading-none mb-1">Success!</p>
+      <p class="text-xs text-gray-400 m-0">Your settings have been updated.</p>
+   </div>
+</div>
