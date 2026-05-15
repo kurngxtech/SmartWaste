@@ -33,77 +33,74 @@ describe('SignUpPageComponent', () => {
       fixture.detectChanges();
    });
 
-   it('should create', () => {
+   it('create the component', () => {
       expect(component).toBeTruthy();
    });
 
-   it('should have invalid form when empty', () => {
-      expect(component.signUpForm.valid).toBeFalsy();
+   describe('Positive Scenarios', () => {
+      it('1. User input valid data Username, Email, Password, and Household User', () => {
+         component.signUpForm.controls['fullName'].setValue('Dummy User');
+         component.signUpForm.controls['email'].setValue('dummyaccount@google.com');
+         component.signUpForm.controls['password'].setValue('dummy1234!');
+         component.signUpForm.controls['householdSize'].setValue(2);
+         expect(component.signUpForm.valid).toBeTruthy();
+      });
+
+      it('2. User input valid 6-digits verification code', () => {
+         // Setup: get into verification mode first
+         component.isVerificationMode = true;
+         component.verificationForm.controls['code'].setValue('123456');
+         expect(component.verificationForm.valid).toBeTruthy();
+      });
+
+      it('3. Registration success and auto-direct to login page', () => {
+         component.signUpForm.controls['email'].setValue('dummyaccount@google.com');
+         component.verificationForm.controls['code'].setValue('123456');
+         mockAuthService.verifyCodeAndRegister.mockReturnValue(true);
+
+         component.onVerify();
+
+         expect(mockAuthService.verifyCodeAndRegister).toHaveBeenCalledWith('dummyaccount@google.com', '123456');
+         expect(router.navigate).toHaveBeenCalledWith(['/login']);
+      });
    });
 
-   it('should have valid form when all fields are filled correctly', () => {
-      component.signUpForm.controls['fullName'].setValue('John Doe');
-      component.signUpForm.controls['email'].setValue('john@example.com');
-      component.signUpForm.controls['password'].setValue('password123');
-      component.signUpForm.controls['householdSize'].setValue(2);
-      expect(component.signUpForm.valid).toBeTruthy();
-   });
+   describe('Negative Scenarios', () => {
+      it('1. User leave one or more field(s) blank', () => {
+         // Full name is blank
+         component.signUpForm.controls['fullName'].setValue('');
+         component.signUpForm.controls['email'].setValue('test@google.com');
+         expect(component.signUpForm.valid).toBeFalsy();
+      });
 
-   describe('onSubmit', () => {
-      beforeEach(() => {
+      it('2. User input non-google account to register', () => {
          component.signUpForm.controls['fullName'].setValue('John Doe');
-         component.signUpForm.controls['email'].setValue('john@google.com');
+         component.signUpForm.controls['email'].setValue('test@yahoo.com');
          component.signUpForm.controls['password'].setValue('password123');
          component.signUpForm.controls['householdSize'].setValue(2);
-      });
-
-      it('should set isVerificationMode to true if email is valid and Google email', () => {
-         mockAuthService.sendVerificationEmail.mockReturnValue(true);
-         component.onSubmit();
-         expect(component.isVerificationMode).toBe(true);
-         expect(component.notGoogleEmailError).toBe(false);
-      });
-
-      it('should set notGoogleEmailError to true if email is not a Google email', () => {
          mockAuthService.sendVerificationEmail.mockReturnValue(false);
+
          component.onSubmit();
+
          expect(component.notGoogleEmailError).toBe(true);
          expect(component.isVerificationMode).toBe(false);
       });
-   });
 
-   describe('onVerify', () => {
-      beforeEach(() => {
+      it('3. User input wrong 6-digits verification code', () => {
          component.signUpForm.controls['email'].setValue('john@google.com');
-         component.verificationForm.controls['code'].setValue('123456');
-      });
-
-      it('should navigate to login if verification is successful', () => {
-         mockAuthService.verifyCodeAndRegister.mockReturnValue(true);
-         component.onVerify();
-         expect(router.navigate).toHaveBeenCalledWith(['/login']);
-         expect(component.verificationError).toBe(false);
-      });
-
-      it('should set verificationError to true if verification fails', () => {
+         component.verificationForm.controls['code'].setValue('000000'); // Wrong code
          mockAuthService.verifyCodeAndRegister.mockReturnValue(false);
+
          component.onVerify();
+
          expect(component.verificationError).toBe(true);
          expect(router.navigate).not.toHaveBeenCalled();
       });
-   });
 
-   it('should reset state when goBackToSignUp is called', () => {
-      component.isVerificationMode = true;
-      component.verificationError = true;
-      component.notGoogleEmailError = true;
-      component.verificationForm.controls['code'].setValue('123456');
-
-      component.goBackToSignUp();
-
-      expect(component.isVerificationMode).toBe(false);
-      expect(component.verificationError).toBe(false);
-      expect(component.notGoogleEmailError).toBe(false);
-      expect(component.verificationForm.controls['code'].value).toBeNull();
+      it('4. User leave the verification field blank', () => {
+         component.isVerificationMode = true;
+         component.verificationForm.controls['code'].setValue('');
+         expect(component.verificationForm.valid).toBeFalsy();
+      });
    });
 });

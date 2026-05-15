@@ -16,7 +16,7 @@ export class SideBarNavigation {
       { label: 'Food And Inventory', icon: '/app-logo/diet.ico', route: '/inventory' },
       { label: 'Donation Hub', icon: '/app-logo/food-donation-navbar.ico', route: '/donations' },
       { label: 'Meal Planner', icon: '/app-logo/planner.ico', route: '/planner' },
-      { label: 'Settings', icon: '/app-logo/gear.ico', route: '/settings' },
+      { label: 'Settings', icon: '/app-logo/gear.ico', route: '/appSettings' },
    ];
 
    currentUrl = '';
