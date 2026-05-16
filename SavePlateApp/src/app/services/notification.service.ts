@@ -52,7 +52,15 @@ export class NotificationService {
             type,
             icon,
             action,
-            isRead: false
+            isRead: false,
+            details: {
+               impactText: type === 'success' 
+                  ? `Your donation was claimed! This helped save food and support the community.` 
+                  : `Please check your inventory to resolve this alert.`,
+               actionButtons: type === 'success'
+                  ? [{ label: 'View Donation', action: 'view_donation', style: 'primary' as const }]
+                  : [{ label: 'Check Item', action: 'check_item', style: 'primary' as const }]
+            }
          };
       });
 

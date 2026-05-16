@@ -1,193 +1,163 @@
 <div class="flex h-screen bg-gray-100 font-sans overflow-hidden">
-  <app-side-bar-navigation></app-side-bar-navigation>
+   <app-side-bar-navigation></app-side-bar-navigation>
 
-  <div class="flex flex-col flex-1 overflow-hidden">
-    <app-header></app-header>
+   <div class="flex flex-col flex-1 overflow-hidden">
+      <app-header></app-header>
 
-    <div class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
-      <div class="max-w-4xl mx-auto">
-        <button
-          routerLink="/dashboard"
-          class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-green-700 transition-colors mb-6 bg-transparent border-none cursor-pointer p-0"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            ></path>
-          </svg>
-          Back to Dashboard
-        </button>
+      <div class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
+         <div class="max-w-4xl mx-auto">
 
-        <div class="flex items-end justify-between mb-8">
-          <div>
-            <h1 class="text-2xl md:text-3xl font-semibold text-gray-900 m-0 mb-1">Notifications</h1>
-            <p class="text-sm text-gray-500 m-0">
-              Stay updated on your inventory and community activity.
-            </p>
-          </div>
-          <button
-            class="text-sm font-medium text-green-700 hover:text-green-800 transition-colors bg-transparent border-none cursor-pointer"
-          >
-            Mark all as read
-          </button>
-        </div>
+            <div class="flex items-end justify-between mb-8">
+               <div>
+                  <h1 class="text-2xl md:text-3xl font-semibold text-gray-900 m-0 mb-1">Notifications</h1>
+                  <p class="text-sm text-gray-500 m-0">
+                     Stay updated on your inventory and community activity.
+                  </p>
+               </div>
+               <button
+                  class="text-sm font-medium text-green-700 hover:text-green-800 transition-colors bg-transparent border-none cursor-pointer">
+                  Mark all as read
+               </button>
+            </div>
 
-        <div class="space-y-4">
-          <div
-            *ngFor="let notif of notifications()"
-            (click)="openNotifModal(notif)"
-            class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex items-start gap-4 group cursor-pointer"
-          >
-            <div
-              class="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
-              [ngClass]="{
+            <div class="space-y-4">
+               <div *ngFor="let notif of notifications()" (click)="openNotifModal(notif)"
+                  class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex items-start gap-4 group cursor-pointer">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" [ngClass]="{
                 'bg-amber-50 text-amber-600': notif.type === 'warning',
                 'bg-green-50 text-green-600': notif.type === 'success',
                 'bg-red-50 text-red-600': notif.type === 'danger',
-              }"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  [attr.d]="notif.icon"
-                />
-              </svg>
+              }">
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="notif.icon" />
+                     </svg>
+                  </div>
+
+                  <div class="flex-1 min-w-0">
+                     <div class="flex items-start justify-between gap-3 mb-1.5">
+                        <h3 class="text-[15px] font-semibold text-gray-900 truncate m-0">
+                           {{ notif.title }}
+                        </h3>
+                        <span class="text-xs font-medium text-gray-400 whitespace-nowrap mt-0.5">{{
+                           notif.time
+                           }}</span>
+                     </div>
+                     <p class="text-[13px] text-gray-600 mb-4 m-0 leading-relaxed">
+                        {{ notif.description }}
+                     </p>
+
+                     <div class="flex items-center gap-3">
+                        <button (click)="$event.stopPropagation()"
+                           class="px-5 py-2 text-[13px] font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors cursor-pointer border-none shadow-sm">
+                           {{ notif.action }}
+                        </button>
+                     </div>
+                  </div>
+
+                  <button (click)="$event.stopPropagation()"
+                     class="text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer p-1.5 rounded-lg border-none bg-transparent">
+                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                           d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z">
+                        </path>
+                     </svg>
+                  </button>
+               </div>
             </div>
-
-            <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between gap-3 mb-1.5">
-                <h3 class="text-[15px] font-semibold text-gray-900 truncate m-0">
-                  {{ notif.title }}
-                </h3>
-                <span class="text-xs font-medium text-gray-400 whitespace-nowrap mt-0.5">{{
-                  notif.time
-                }}</span>
-              </div>
-              <p class="text-[13px] text-gray-600 mb-4 m-0 leading-relaxed">
-                {{ notif.description }}
-              </p>
-
-              <div class="flex items-center gap-3">
-                <button
-                  (click)="$event.stopPropagation()"
-                  class="px-5 py-2 text-[13px] font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors cursor-pointer border-none shadow-sm"
-                >
-                  {{ notif.action }}
-                </button>
-              </div>
-            </div>
-
-            <button
-              (click)="$event.stopPropagation()"
-              class="text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer p-1.5 rounded-lg border-none bg-transparent"
-            >
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
-                ></path>
-              </svg>
-            </button>
-          </div>
-        </div>
+         </div>
       </div>
-    </div>
-  </div>
+   </div>
 </div>
 
 <!-- Notification Detail Modal -->
-<div
-  *ngIf="selectedNotif"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity"
->
-  <div
-    class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden transform transition-all"
-  >
-    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-      <h3 class="text-lg font-bold text-gray-800">Notification Details</h3>
-      <button
-        (click)="closeNotifModal()"
-        class="text-gray-400 hover:text-gray-600 focus:outline-none bg-transparent border-none cursor-pointer"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          ></path>
-        </svg>
-      </button>
-    </div>
-    <div class="p-6">
-      <div class="flex items-center gap-4 mb-6">
-        <div
-          class="w-16 h-16 rounded-full flex items-center justify-center shrink-0"
-          [ngClass]="{
+<div *ngIf="selectedNotif"
+   class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
+   <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden transform transition-all">
+      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+         <h3 class="text-lg font-bold text-gray-800">Notification Details</h3>
+         <button (click)="closeNotifModal()"
+            class="text-gray-400 hover:text-gray-600 focus:outline-none bg-transparent border-none cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+         </button>
+      </div>
+      <div class="p-6">
+         <div class="flex items-center gap-4 mb-6">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center shrink-0" [ngClass]="{
             'bg-amber-50 text-amber-600': selectedNotif.type === 'warning',
             'bg-green-50 text-green-600': selectedNotif.type === 'success',
             'bg-red-50 text-red-600': selectedNotif.type === 'danger',
-          }"
-        >
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              [attr.d]="selectedNotif.icon"
-            />
-          </svg>
-        </div>
-        <div>
-          <h2 class="text-xl font-bold text-gray-900 m-0 leading-tight">
-            {{ selectedNotif.title }}
-          </h2>
-          <span class="text-sm font-medium text-gray-500">{{ selectedNotif.time }}</span>
-        </div>
-      </div>
+          }">
+               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="selectedNotif.icon" />
+               </svg>
+            </div>
+            <div>
+               <h2 class="text-xl font-bold text-gray-900 m-0 leading-tight">
+                  {{ selectedNotif.title }}
+               </h2>
+               <span class="text-sm font-medium text-gray-500">{{ selectedNotif.time }}</span>
+            </div>
+         </div>
 
-      <div class="bg-gray-50 rounded-xl p-5 mb-6 border border-gray-100">
-        <h4 class="text-sm font-semibold text-gray-700 mb-2 mt-0">Message</h4>
-        <p class="text-gray-600 text-[15px] leading-relaxed m-0">{{ selectedNotif.description }}</p>
-      </div>
+         <div class="bg-gray-50 rounded-xl p-5 mb-6 border border-gray-100">
+            <h4 class="text-sm font-semibold text-gray-700 mb-2 mt-0">Message</h4>
+            <p class="text-gray-600 text-[15px] leading-relaxed m-0">{{ selectedNotif.description }}</p>
+         </div>
 
-      <div class="flex flex-col gap-3">
-        <div class="flex justify-between items-center py-3 border-b border-gray-100">
-          <span class="text-sm text-gray-500">Status Type</span>
-          <span
-            class="text-sm font-bold uppercase tracking-wider"
-            [ngClass]="{
+         <!-- New Impact Section -->
+         <div *ngIf="selectedNotif.details?.impactText"
+            class="bg-green-50/50 rounded-xl p-5 mb-6 border border-green-100">
+            <h4 class="text-sm font-semibold text-green-800 mb-2 mt-0 flex items-center gap-2">
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z">
+                  </path>
+               </svg>
+               Why it matters
+            </h4>
+            <p class="text-green-700 text-[14px] leading-relaxed m-0">{{ selectedNotif.details.impactText }}</p>
+         </div>
+
+         <div class="flex flex-col gap-3">
+            <div class="flex justify-between items-center py-3 border-b border-gray-100">
+               <span class="text-sm text-gray-500">Status Type</span>
+               <span class="text-sm font-bold uppercase tracking-wider" [ngClass]="{
               'text-amber-600': selectedNotif.type === 'warning',
               'text-green-600': selectedNotif.type === 'success',
               'text-red-600': selectedNotif.type === 'danger',
-            }"
-            >{{ selectedNotif.type }}</span
-          >
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-gray-100">
-          <span class="text-sm text-gray-500">Suggested Action</span>
-          <span class="text-sm font-medium text-gray-800">{{ selectedNotif.action }}</span>
-        </div>
-      </div>
+              'text-blue-600': selectedNotif.type === 'info'
+            }">{{ selectedNotif.type }}</span>
+            </div>
+         </div>
 
-      <div class="mt-8 flex justify-end space-x-3">
-        <button
-          (click)="closeNotifModal()"
-          class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors bg-white cursor-pointer"
-        >
-          Close
-        </button>
-        <button
-          (click)="closeNotifModal()"
-          class="px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors border-none cursor-pointer"
-        >
-          {{ selectedNotif.action }}
-        </button>
+         <div class="mt-8 flex justify-end space-x-3">
+            <button (click)="closeNotifModal()"
+               class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors bg-white cursor-pointer">
+               Dismiss
+            </button>
+
+            <!-- Dynamic Action Buttons -->
+            <ng-container *ngIf="selectedNotif.details?.actionButtons; else defaultAction">
+               <button *ngFor="let btn of selectedNotif.details.actionButtons" (click)="handleAction(btn.action)"
+                  class="px-5 py-2.5 !text-white font-medium rounded-lg transition-colors border-none cursor-pointer shadow-sm"
+                  [ngClass]="{
+               'bg-green-600 hover:bg-green-700': btn.style === 'primary',
+               'bg-gray-800 hover:bg-gray-900': btn.style === 'secondary',
+               'bg-red-600 hover:bg-red-700': btn.style === 'danger'
+             }">
+                  {{ btn.label }}
+               </button>
+            </ng-container>
+
+            <!-- Fallback if no details -->
+            <ng-template #defaultAction>
+               <button *ngIf="selectedNotif.action" (click)="closeNotifModal()"
+                  class="px-5 py-2.5 bg-green-600 !text-white font-medium rounded-lg hover:bg-green-700 transition-colors border-none cursor-pointer shadow-sm">
+                  {{ selectedNotif.action }}
+               </button>
+            </ng-template>
+         </div>
       </div>
-    </div>
-  </div>
+   </div>
 </div>

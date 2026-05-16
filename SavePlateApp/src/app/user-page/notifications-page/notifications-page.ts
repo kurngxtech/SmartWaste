@@ -2,14 +2,13 @@ import { Component, inject, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
-import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 import { AppNotification } from '../../models/notification.model';
 
 @Component({
    selector: 'app-notifications-page',
    standalone: true,
-   imports: [CommonModule, SideBarNavigation, Header, RouterLink],
+   imports: [CommonModule, SideBarNavigation, Header],
    templateUrl: './notifications-page.html'
 })
 export class NotificationsPage {
@@ -26,5 +25,11 @@ export class NotificationsPage {
 
    closeNotifModal() {
       this.selectedNotif = null;
+   }
+
+   handleAction(action: string) {
+      console.log('Action triggered:', action);
+      // Here you could trigger routing or call a service based on the action
+      this.closeNotifModal();
    }
 }

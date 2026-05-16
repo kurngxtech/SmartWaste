@@ -7,4 +7,8 @@ export interface AppNotification {
   icon: string;
   action?: string;
   isRead: boolean;
+  details?: {
+    impactText: string;
+    actionButtons: { label: string; action: string; style: 'primary' | 'secondary' | 'danger' }[];
+  };
 }

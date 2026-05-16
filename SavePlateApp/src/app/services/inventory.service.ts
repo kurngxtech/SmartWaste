@@ -71,7 +71,18 @@ export class InventoryService {
             icon: item.status === 'Expired' 
                ? 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' 
                : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-            action: item.status === 'Expired' ? 'Remove Item' : 'Plan Meal'
+            action: item.status === 'Expired' ? 'Remove Item' : 'Plan Meal',
+            details: {
+               impactText: item.status === 'Expired' 
+                  ? `Removing this item will keep your inventory clean.` 
+                  : `Consuming this ${item.name} today prevents food waste.`,
+               actionButtons: item.status === 'Expired'
+                  ? [{ label: 'Remove Item', action: 'remove', style: 'danger' as const }]
+                  : [
+                     { label: 'Add to Meal Plan', action: 'plan', style: 'primary' as const },
+                     { label: 'Mark as Donated', action: 'donate', style: 'secondary' as const }
+                  ]
+            }
          }));
    }
 
