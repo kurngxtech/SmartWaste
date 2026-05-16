@@ -1,18 +1,19 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
+import { UserSettingsService } from '../../services/user-settings.service';
 
 @Component({
    selector: 'app-app-settings-page',
    standalone: true,
-   imports: [CommonModule, FormsModule, RouterLink, SideBarNavigation, Header],
+   imports: [CommonModule, FormsModule, SideBarNavigation, Header],
    templateUrl: './app-settings-page.html',
    styleUrl: './app-settings-page.css',
 })
 export class AppSettingsPage {
+   settingsService = inject(UserSettingsService);
 
    // ── Active Section Tab ──────────────────────────────────────────────
    activeTab = signal<string>('privacy');
@@ -21,69 +22,84 @@ export class AppSettingsPage {
       this.activeTab.set(tab);
    }
 
+   // Getters for template
+   get profile() { return this.settingsService.profile(); }
+   get preferences() { return this.settingsService.preferences(); }
+
    // ── Privacy & Security ──────────────────────────────────────────────
-   twoFactorEnabled = signal<boolean>(false);
-   donationVisibility = signal<'public' | 'private'>('public');
-   locationPrivacy = signal<'exact' | 'neighborhood'>('neighborhood');
-   dataAnalyticsOptIn = signal<boolean>(true);
+   get twoFactorEnabled() { return this.preferences.twoFactorEnabled; }
+   get donationVisibility() { return this.preferences.donationVisibility; }
+   get locationPrivacy() { return this.preferences.locationPrivacy; }
+   get dataAnalyticsOptIn() { return this.preferences.dataAnalyticsOptIn; }
 
    toggleTwoFactor() {
-      this.twoFactorEnabled.set(!this.twoFactorEnabled());
+      this.settingsService.updatePreferences({ twoFactorEnabled: !this.twoFactorEnabled });
    }
    toggleDataAnalytics() {
-      this.dataAnalyticsOptIn.set(!this.dataAnalyticsOptIn());
+      this.settingsService.updatePreferences({ dataAnalyticsOptIn: !this.dataAnalyticsOptIn });
+   }
+   setDonationVisibility(v: 'public' | 'private') {
+      this.settingsService.updatePreferences({ donationVisibility: v });
+   }
+   setLocationPrivacy(v: 'exact' | 'neighborhood') {
+      this.settingsService.updatePreferences({ locationPrivacy: v });
    }
 
    // ── Notification Preferences ────────────────────────────────────────
-   expiryThreshold = signal<number>(3);
-   alertInventoryExpiry = signal<boolean>(true);
-   alertDonationUpdates = signal<boolean>(true);
-   alertMealReminders = signal<boolean>(false);
-   deliveryChannel = signal<'app' | 'email' | 'both'>('both');
+   get expiryThreshold() { return this.preferences.expiryThreshold; }
+   get alertInventoryExpiry() { return this.preferences.expiryAlerts; }
+   get alertDonationUpdates() { return this.preferences.donationUpdates; }
+   get alertMealReminders() { return this.preferences.alertMealReminders; }
+   get deliveryChannel() { return this.preferences.deliveryChannel; }
+
+   setExpiryThreshold(v: number) { this.settingsService.updatePreferences({ expiryThreshold: v }); }
+   toggleAlertInventoryExpiry() { this.settingsService.updatePreferences({ expiryAlerts: !this.alertInventoryExpiry }); }
+   toggleAlertDonationUpdates() { this.settingsService.updatePreferences({ donationUpdates: !this.alertDonationUpdates }); }
+   toggleAlertMealReminders() { this.settingsService.updatePreferences({ alertMealReminders: !this.alertMealReminders }); }
+   setDeliveryChannel(v: 'app' | 'email' | 'both') { this.settingsService.updatePreferences({ deliveryChannel: v }); }
 
    // ── Account & Household ─────────────────────────────────────────────
-   householdSize = signal<number>(3);
-   storageLocations = signal<string[]>(['Main Fridge', 'Pantry', 'Freezer']);
+   get householdSize() { return this.profile.householdSize; }
+   get storageLocations() { return this.preferences.storageLocations; }
    newStorageLocation = '';
+
+   setHouseholdSize(v: number) {
+      this.settingsService.updateProfile({ householdSize: v });
+   }
 
    addStorageLocation() {
       const trimmed = this.newStorageLocation.trim();
-      if (trimmed && !this.storageLocations().includes(trimmed)) {
-         this.storageLocations.update(locs => [...locs, trimmed]);
+      if (trimmed && !this.storageLocations.includes(trimmed)) {
+         this.settingsService.addStorageLocation(trimmed);
       }
       this.newStorageLocation = '';
    }
 
    removeStorageLocation(loc: string) {
-      this.storageLocations.update(locs => locs.filter(l => l !== loc));
+      this.settingsService.removeStorageLocation(loc);
    }
 
    // ── Donation & Community ────────────────────────────────────────────
-   pickupLocations = signal<string[]>(['Home', 'Office']);
+   get pickupLocations() { return this.preferences.pickupLocations; }
    newPickupLocation = '';
-   preferredCategories = signal<string[]>(['Vegetarian']);
+   get preferredCategories() { return this.preferences.preferredCategories; }
 
    allCategories = ['Vegetarian', 'Vegan', 'Canned Goods', 'Dairy', 'Bakery', 'Fruits & Veg', 'Meat & Poultry', 'Snacks', 'Beverages'];
 
    addPickupLocation() {
       const trimmed = this.newPickupLocation.trim();
-      if (trimmed && !this.pickupLocations().includes(trimmed)) {
-         this.pickupLocations.update(locs => [...locs, trimmed]);
+      if (trimmed && !this.pickupLocations.includes(trimmed)) {
+         this.settingsService.addPickupLocation(trimmed);
       }
       this.newPickupLocation = '';
    }
 
    removePickupLocation(loc: string) {
-      this.pickupLocations.update(locs => locs.filter(l => l !== loc));
+      this.settingsService.removePickupLocation(loc);
    }
 
    toggleCategory(cat: string) {
-      const current = this.preferredCategories();
-      if (current.includes(cat)) {
-         this.preferredCategories.set(current.filter(c => c !== cat));
-      } else {
-         this.preferredCategories.set([...current, cat]);
-      }
+      this.settingsService.toggleCategory(cat);
    }
 
    // ── Save / Toast ────────────────────────────────────────────────────

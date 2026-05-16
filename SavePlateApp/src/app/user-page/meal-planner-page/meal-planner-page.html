@@ -2,9 +2,23 @@
 
    <app-side-bar-navigation></app-side-bar-navigation>
 
-   <div class="flex flex-col flex-1 overflow-hidden">
+   <div class="flex flex-col flex-1 overflow-hidden relative">
 
       <app-header></app-header>
+
+      <!-- Toast Notification -->
+      <div *ngIf="showToast()"
+         class="absolute top-20 right-8 z-[60] flex items-center gap-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-black/20 animate-in slide-in-from-top-4 duration-300">
+         <div class="w-8 h-8 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+         </div>
+         <div>
+            <p class="text-sm font-bold m-0 leading-none mb-1">Success!</p>
+            <p class="text-xs text-gray-400 m-0">Meal successfully planned.</p>
+         </div>
+      </div>
       <div class="p-7 md:p-8 pb-20 md:pb-24 min-h-screen bg-gray-50 overflow-y-auto">
 
          <div class="flex items-start justify-between mb-5">
@@ -13,7 +27,7 @@
                <p class="text-sm text-gray-500 m-0">Plan your weekly meals using available inventory</p>
             </div>
             <button
-               class="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-800 rounded-lg transition-colors cursor-pointer border-none"
+               class="btn-primary"
                (click)="openModal('Mon', 'Breakfast')">
                <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                   <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
@@ -112,7 +126,7 @@
                      <p class="text-sm font-medium text-gray-700 m-0 mb-1">No matching recipes</p>
                      <p class="text-xs text-gray-400 m-0">Add ingredients to your inventory to see suggestions.</p>
                      <button
-                        class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-700 bg-white border border-green-700 hover:bg-green-50 rounded-lg transition-colors mt-2 cursor-pointer"
+                        class="btn-secondary mt-2"
                         (click)="openModal('Mon', 'Breakfast')">
                         Create meal manually
                      </button>
@@ -174,3 +188,4 @@
          (close)="onCloseModal()" />
    </div>
 </div>
+

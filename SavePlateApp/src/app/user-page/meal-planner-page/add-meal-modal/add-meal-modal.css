@@ -93,7 +93,7 @@
 }
 
 .form-input:focus {
-   border-color: #4f7942;
+   border-color: #16a34a;
    background: #ffffff;
    box-shadow: 0 0 0 3px rgba(79, 121, 66, 0.12);
 }
@@ -155,7 +155,7 @@ select.form-input {
 .ingredient-check input[type="checkbox"] {
    width: 16px;
    height: 16px;
-   accent-color: #4f7942;
+   accent-color: #16a34a;
    cursor: pointer;
 }
 
@@ -246,7 +246,7 @@ select.form-input {
 .toggle-label input[type="checkbox"] {
    width: 16px;
    height: 16px;
-   accent-color: #4f7942;
+   accent-color: #16a34a;
    cursor: pointer;
 }
 
@@ -257,38 +257,4 @@ select.form-input {
    margin-top: 22px;
    padding-top: 16px;
    border-top: 1px solid #f3f4f6;
-}
-
-.btn-cancel {
-   padding: 9px 20px;
-   font-size: 14px;
-   font-weight: 500;
-   color: #374151;
-   background: #f9fafb;
-   border: 1px solid #e5e7eb;
-   border-radius: 8px;
-   cursor: pointer;
-   font-family: inherit;
-   transition: background 0.15s;
-}
-
-.btn-cancel:hover {
-   background: #f3f4f6;
-}
-
-.btn-save {
-   padding: 9px 22px;
-   font-size: 14px;
-   font-weight: 500;
-   color: #ffffff;
-   background: #4f7942;
-   border: none;
-   border-radius: 8px;
-   cursor: pointer;
-   font-family: inherit;
-   transition: background 0.15s;
-}
-
-.btn-save:hover {
-   background: #3d6132;
 }

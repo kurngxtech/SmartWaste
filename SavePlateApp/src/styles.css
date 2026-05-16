@@ -1,1 +1,17 @@
 @import 'tailwindcss';
+
+@utility btn-primary {
+  @apply bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+}
+
+@utility btn-secondary {
+  @apply bg-white hover:bg-gray-50 active:bg-gray-200 text-gray-700 border border-gray-300 px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+}
+
+@utility btn-danger {
+  @apply bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+}
+
+@utility btn-white {
+  @apply bg-white hover:bg-green-50 active:bg-green-100 text-green-700 border border-transparent px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm hover:shadow-md active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+}

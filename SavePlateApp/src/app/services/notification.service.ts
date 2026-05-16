@@ -1,12 +1,14 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, signal, inject } from '@angular/core';
 import { InventoryService } from './inventory.service';
 import { AnalyticsService } from './analytics.service';
 import { AppNotification } from '../models/notification.model';
+import { UserSettingsService } from './user-settings.service';
 
 @Injectable({
    providedIn: 'root'
 })
 export class NotificationService {
+   private settingsService = inject(UserSettingsService);
 
    constructor(
       private inventoryService: InventoryService,
@@ -14,6 +16,8 @@ export class NotificationService {
    ) { }
 
    public notifications = computed(() => {
+      const prefs = this.settingsService.preferences();
+
       // 1. Get notifications from InventoryService
       const inventoryNotifs = this.inventoryService.getNotifications().map(n => ({
          ...n,
@@ -52,7 +56,20 @@ export class NotificationService {
          };
       });
 
-      return [...inventoryNotifs, ...analyticsNotifs];
+      let allNotifs = [...inventoryNotifs, ...analyticsNotifs];
+
+      // Apply settings logic to filter notifications
+      if (!prefs.expiryAlerts) {
+         allNotifs = allNotifs.filter(n => n.type !== 'danger' && n.type !== 'warning');
+      }
+      if (!prefs.donationUpdates) {
+         allNotifs = allNotifs.filter(n => n.type !== 'success');
+      }
+      if (!prefs.weeklySummary) {
+         allNotifs = allNotifs.filter(n => n.type !== 'info');
+      }
+
+      return allNotifs;
    });
 
    getAllNotifications(): AppNotification[] {

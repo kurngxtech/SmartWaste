@@ -23,7 +23,7 @@
       <button
          class="relative flex items-center justify-center p-1 rounded-full hover:bg-green-50 ring-2 ring-transparent hover:ring-green-500 transition-all focus:outline-none group"
          routerLink="/userDetail">
-         <img src="/app-logo/user_blank.ico" alt="User"
+         <img [src]="profile.avatarUrl || '/app-logo/user_blank.ico'" alt="User"
             class="w-8 h-8 rounded-full object-cover opacity-75 group-hover:opacity-100 transition-opacity">
       </button>
    </div>

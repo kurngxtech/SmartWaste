@@ -2,9 +2,23 @@
    <!-- Fixed Sidebar -->
    <app-side-bar-navigation></app-side-bar-navigation>
 
-   <div class="flex flex-col flex-1 overflow-hidden">
+   <div class="flex flex-col flex-1 overflow-hidden relative">
       <!-- Top Navbar -->
       <app-header></app-header>
+
+      <!-- Toast Notification -->
+      <div *ngIf="showToast()"
+         class="absolute top-20 right-8 z-[60] flex items-center gap-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-black/20 animate-in slide-in-from-top-4 duration-300">
+         <div class="w-8 h-8 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+         </div>
+         <div>
+            <p class="text-sm font-bold m-0 leading-none mb-1">Success!</p>
+            <p class="text-xs text-gray-400 m-0">Item has been updated.</p>
+         </div>
+      </div>
 
       <!-- Main Content -->
       <main class="flex-1 overflow-y-auto p-6 md:p-8">
@@ -16,7 +30,7 @@
                <p class="text-sm text-gray-500 mt-1">Track your food items and reduce waste</p>
             </div>
             <button (click)="openAddModal()"
-               class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg shadow-sm transition-colors flex items-center justify-center whitespace-nowrap">
+               class="btn-primary">
                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                </svg>
@@ -215,9 +229,9 @@
          </div>
          <div class="mt-6 flex justify-end space-x-3">
             <button type="button" (click)="closeAddModal()"
-               class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+               class="btn-secondary">Cancel</button>
             <button type="submit" [disabled]="addForm.invalid"
-               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{{
+               class="btn-primary">{{
                isEditMode ? 'Save Changes' : 'Save Item' }}</button>
          </div>
       </form>
@@ -257,9 +271,9 @@
             </div>
             <div class="mt-6 flex justify-end space-x-3">
                <button type="button" (click)="closeDonateModal()"
-                  class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                  class="btn-secondary">Cancel</button>
                <button type="submit" [disabled]="donateForm.invalid"
-                  class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Confirm
+                  class="btn-primary">Confirm
                   Donation</button>
             </div>
          </form>
@@ -283,9 +297,10 @@
             itemToDelete?.name }}</span> from your inventory? This action cannot be undone.</p>
       <div class="flex justify-center space-x-3">
          <button (click)="closeDeleteModal()"
-            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+            class="btn-secondary">Cancel</button>
          <button (click)="confirmDelete()"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Yes, Delete</button>
+            class="btn-danger">Delete</button>
       </div>
    </div>
 </div>
+

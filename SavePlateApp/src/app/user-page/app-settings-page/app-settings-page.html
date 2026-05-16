@@ -1,22 +1,25 @@
 <div class="flex h-screen bg-gray-100 font-sans overflow-hidden">
    <app-side-bar-navigation></app-side-bar-navigation>
 
-   <div class="flex flex-col flex-1 overflow-hidden">
+   <div class="flex flex-col flex-1 overflow-hidden relative">
       <app-header></app-header>
+
+      <!-- Toast Notification -->
+      <div *ngIf="showToast()"
+         class="absolute top-20 right-8 z-[60] flex items-center gap-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-black/20 animate-in slide-in-from-top-4 duration-300">
+         <div class="w-8 h-8 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+         </div>
+         <div>
+            <p class="text-sm font-bold m-0 leading-none mb-1">Success!</p>
+            <p class="text-xs text-gray-400 m-0">Your settings have been updated.</p>
+         </div>
+      </div>
 
       <div class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
          <div class="max-w-4xl mx-auto">
-
-            <!-- Back Button -->
-            <button routerLink="/dashboard"
-               class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-green-700 transition-colors mb-6 bg-transparent border-none cursor-pointer p-0 group">
-               <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                     d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-               </svg>
-               Back to Dashboard
-            </button>
 
             <!-- Header -->
             <div class="mb-8">
@@ -27,7 +30,7 @@
 
             <!-- Navigation Tabs -->
             <div
-               class="flex gap-1 bg-white border border-gray-200 rounded-2xl p-1.5 mb-8 shadow-sm overflow-x-auto scrollbar-hide">
+               class="flex flex-wrap gap-1 bg-white border border-gray-200 rounded-2xl p-1.5 mb-8 shadow-sm">
                <button *ngFor="let tab of [
             {id:'privacy', label:'Privacy & Security', icon:'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'},
             {id:'notifications', label:'Notifications', icon:'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'},
@@ -65,11 +68,12 @@
                               verification.</p>
                         </div>
                      </div>
-                     <button (click)="toggleTwoFactor()"
-                        [class]="twoFactorEnabled() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
-                        <span
-                           [class]="twoFactorEnabled() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
-                     </button>
+                     <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input type="checkbox" [checked]="twoFactorEnabled" (change)="toggleTwoFactor()" class="sr-only peer">
+                        <div
+                           class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                        </div>
+                     </label>
                   </div>
                </div>
 
@@ -92,12 +96,12 @@
                      </div>
                   </div>
                   <div class="flex gap-3 ml-16">
-                     <button (click)="donationVisibility.set('public')"
-                        [class]="donationVisibility() === 'public' ? 'px-5 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                     <button (click)="setDonationVisibility('public')"
+                        [class]="donationVisibility === 'public' ? 'px-5 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-sm font-bold transition-all cursor-pointer active:scale-95' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer active:scale-95'">
                         🌐 Public
                      </button>
-                     <button (click)="donationVisibility.set('private')"
-                        [class]="donationVisibility() === 'private' ? 'px-5 py-2.5 bg-gray-900 text-white border border-gray-900 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                     <button (click)="setDonationVisibility('private')"
+                        [class]="donationVisibility === 'private' ? 'px-5 py-2.5 bg-gray-900 text-white border border-gray-900 rounded-xl text-sm font-bold transition-all cursor-pointer active:scale-95' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer active:scale-95'">
                         🔒 Private
                      </button>
                   </div>
@@ -121,12 +125,12 @@
                      </div>
                   </div>
                   <div class="flex flex-wrap gap-3 ml-16">
-                     <button (click)="locationPrivacy.set('exact')"
-                        [class]="locationPrivacy() === 'exact' ? 'px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                     <button (click)="setLocationPrivacy('exact')"
+                        [class]="locationPrivacy === 'exact' ? 'px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm font-bold transition-all cursor-pointer active:scale-95' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer active:scale-95'">
                         📍 Exact Address
                      </button>
-                     <button (click)="locationPrivacy.set('neighborhood')"
-                        [class]="locationPrivacy() === 'neighborhood' ? 'px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm font-bold transition-all cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                     <button (click)="setLocationPrivacy('neighborhood')"
+                        [class]="locationPrivacy === 'neighborhood' ? 'px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-sm font-bold transition-all cursor-pointer active:scale-95' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all cursor-pointer active:scale-95'">
                         🗺️ Neighborhood Radius
                      </button>
                   </div>
@@ -149,11 +153,12 @@
                               reports.</p>
                         </div>
                      </div>
-                     <button (click)="toggleDataAnalytics()"
-                        [class]="dataAnalyticsOptIn() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
-                        <span
-                           [class]="dataAnalyticsOptIn() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
-                     </button>
+                     <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input type="checkbox" [checked]="dataAnalyticsOptIn" (change)="toggleDataAnalytics()" class="sr-only peer">
+                        <div
+                           class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                        </div>
+                     </label>
                   </div>
                </div>
             </div>
@@ -177,8 +182,8 @@
                      </div>
                   </div>
                   <div class="flex flex-wrap gap-2 ml-16">
-                     <button *ngFor="let d of [1, 2, 3, 5, 7]" (click)="expiryThreshold.set(d)"
-                        [class]="expiryThreshold() === d ? 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold shadow-sm transition-all cursor-pointer border-none' : 'px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition-all cursor-pointer border-none'">
+                     <button *ngFor="let d of [1, 2, 3, 5, 7]" (click)="setExpiryThreshold(d)"
+                        [class]="expiryThreshold === d ? 'px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold shadow-sm transition-all cursor-pointer border-none active:scale-95' : 'px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition-all cursor-pointer border-none active:scale-95'">
                         {{ d }} {{ d === 1 ? 'day' : 'days' }}
                      </button>
                   </div>
@@ -204,11 +209,12 @@
                            <p class="text-sm font-bold text-gray-800 m-0 mb-0.5">Inventory Expiry Alerts</p>
                            <p class="text-xs text-gray-500 m-0">Get notified when items are nearing expiry.</p>
                         </div>
-                        <button (click)="alertInventoryExpiry.set(!alertInventoryExpiry())"
-                           [class]="alertInventoryExpiry() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
-                           <span
-                              [class]="alertInventoryExpiry() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
-                        </button>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                           <input type="checkbox" [checked]="alertInventoryExpiry" (change)="toggleAlertInventoryExpiry()" class="sr-only peer">
+                           <div
+                              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                           </div>
+                        </label>
                      </div>
                      <!-- Item 2 -->
                      <div class="flex items-center justify-between pb-6 border-b border-gray-100">
@@ -216,11 +222,12 @@
                            <p class="text-sm font-bold text-gray-800 m-0 mb-0.5">Donation Claim Updates</p>
                            <p class="text-xs text-gray-500 m-0">Updates when someone claims your donation.</p>
                         </div>
-                        <button (click)="alertDonationUpdates.set(!alertDonationUpdates())"
-                           [class]="alertDonationUpdates() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
-                           <span
-                              [class]="alertDonationUpdates() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
-                        </button>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                           <input type="checkbox" [checked]="alertDonationUpdates" (change)="toggleAlertDonationUpdates()" class="sr-only peer">
+                           <div
+                              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                           </div>
+                        </label>
                      </div>
                      <!-- Item 3 -->
                      <div class="flex items-center justify-between">
@@ -228,11 +235,12 @@
                            <p class="text-sm font-bold text-gray-800 m-0 mb-0.5">Meal Planning Reminders</p>
                            <p class="text-xs text-gray-500 m-0">Suggestions to use items before they expire.</p>
                         </div>
-                        <button (click)="alertMealReminders.set(!alertMealReminders())"
-                           [class]="alertMealReminders() ? 'relative inline-flex items-center w-11 h-6 rounded-full bg-green-600 transition-colors border-none cursor-pointer' : 'relative inline-flex items-center w-11 h-6 rounded-full bg-gray-300 transition-colors border-none cursor-pointer'">
-                           <span
-                              [class]="alertMealReminders() ? 'translate-x-6 inline-block w-4 h-4 transform bg-white rounded-full transition-transform' : 'translate-x-1 inline-block w-4 h-4 transform bg-white rounded-full transition-transform'"></span>
-                        </button>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                           <input type="checkbox" [checked]="alertMealReminders" (change)="toggleAlertMealReminders()" class="sr-only peer">
+                           <div
+                              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500">
+                           </div>
+                        </label>
                      </div>
                   </div>
                </div>
@@ -253,14 +261,14 @@
                      </div>
                   </div>
                   <div class="flex flex-wrap gap-3 ml-16">
-                     <button (click)="deliveryChannel.set('app')"
-                        [class]="deliveryChannel() === 'app' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer'">📱
+                     <button (click)="setDeliveryChannel('app')"
+                        [class]="deliveryChannel === 'app' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer active:scale-95' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer active:scale-95'">📱
                         In-App</button>
-                     <button (click)="deliveryChannel.set('email')"
-                        [class]="deliveryChannel() === 'email' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer'">✉️
+                     <button (click)="setDeliveryChannel('email')"
+                        [class]="deliveryChannel === 'email' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer active:scale-95' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer active:scale-95'">✉️
                         Email</button>
-                     <button (click)="deliveryChannel.set('both')"
-                        [class]="deliveryChannel() === 'both' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer'">🔔
+                     <button (click)="setDeliveryChannel('both')"
+                        [class]="deliveryChannel === 'both' ? 'px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold border-none cursor-pointer active:scale-95' : 'px-5 py-2.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-100 cursor-pointer active:scale-95'">🔔
                         Both</button>
                   </div>
                </div>
@@ -287,17 +295,17 @@
 
                   <div class="flex items-center gap-6 ml-16">
                      <div class="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-1">
-                        <button (click)="householdSize.set(householdSize() > 1 ? householdSize() - 1 : 1)"
-                           class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-white rounded-xl transition-all border-none bg-transparent cursor-pointer font-bold text-lg">
+                        <button (click)="setHouseholdSize(householdSize > 1 ? householdSize - 1 : 1)"
+                           class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-white rounded-xl transition-all border-none bg-transparent cursor-pointer font-bold text-lg active:scale-95">
                            −
                         </button>
-                        <span class="w-12 text-center text-xl font-bold text-gray-900">{{ householdSize() }}</span>
-                        <button (click)="householdSize.set(householdSize() + 1)"
-                           class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-white rounded-xl transition-all border-none bg-transparent cursor-pointer font-bold text-lg">
+                        <span class="w-12 text-center text-xl font-bold text-gray-900">{{ householdSize }}</span>
+                        <button (click)="setHouseholdSize(householdSize + 1)"
+                           class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-white rounded-xl transition-all border-none bg-transparent cursor-pointer font-bold text-lg active:scale-95">
                            +
                         </button>
                      </div>
-                     <p class="text-sm font-medium text-gray-500 m-0">{{ householdSize() === 1 ? 'Person' : 'People' }}
+                     <p class="text-sm font-medium text-gray-500 m-0">{{ householdSize === 1 ? 'Person' : 'People' }}
                         in household</p>
                   </div>
                </div>
@@ -321,11 +329,11 @@
 
                   <div class="ml-16 space-y-4">
                      <div class="flex flex-wrap gap-2">
-                        <div *ngFor="let loc of storageLocations()"
+                        <div *ngFor="let loc of storageLocations"
                            class="inline-flex items-center gap-2 px-3 py-2 bg-orange-50 text-orange-700 border border-orange-100 rounded-xl text-[13px] font-bold">
                            📦 {{ loc }}
                            <button (click)="removeStorageLocation(loc)"
-                              class="text-orange-400 hover:text-red-500 bg-transparent border-none p-0 cursor-pointer text-base leading-none">×</button>
+                              class="text-orange-400 hover:text-red-500 bg-transparent border-none p-0 cursor-pointer text-base leading-none active:scale-90">×</button>
                         </div>
                      </div>
                      <div class="flex gap-2">
@@ -333,7 +341,7 @@
                            placeholder="e.g. Basement Freezer"
                            class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all" />
                         <button (click)="addStorageLocation()"
-                           class="px-6 py-2.5 bg-green-600 text-white rounded-xl text-[13px] font-bold hover:bg-green-700 border-none cursor-pointer transition-all">Add</button>
+                           class="btn-primary">Add</button>
                      </div>
                   </div>
                </div>
@@ -362,11 +370,11 @@
 
                   <div class="ml-16 space-y-4">
                      <div class="flex flex-wrap gap-2">
-                        <div *ngFor="let loc of pickupLocations()"
+                        <div *ngFor="let loc of pickupLocations"
                            class="inline-flex items-center gap-2 px-3 py-2 bg-teal-50 text-teal-700 border border-teal-100 rounded-xl text-[13px] font-bold">
                            📍 {{ loc }}
                            <button (click)="removePickupLocation(loc)"
-                              class="text-teal-400 hover:text-red-500 bg-transparent border-none p-0 cursor-pointer text-base leading-none">×</button>
+                              class="text-teal-400 hover:text-red-500 bg-transparent border-none p-0 cursor-pointer text-base leading-none active:scale-90">×</button>
                         </div>
                      </div>
                      <div class="flex gap-2">
@@ -374,7 +382,7 @@
                            placeholder="e.g. Community Center"
                            class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all" />
                         <button (click)="addPickupLocation()"
-                           class="px-6 py-2.5 bg-green-600 text-white rounded-xl text-[13px] font-bold hover:bg-green-700 border-none cursor-pointer transition-all">Add</button>
+                           class="btn-primary">Add</button>
                      </div>
                   </div>
                </div>
@@ -397,9 +405,9 @@
 
                   <div class="flex flex-wrap gap-2 ml-16">
                      <button *ngFor="let cat of allCategories" (click)="toggleCategory(cat)"
-                        [class]="preferredCategories().includes(cat) 
-                  ? 'px-4 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-[13px] font-bold transition-all cursor-pointer' 
-                  : 'px-4 py-2 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-[13px] font-medium hover:bg-gray-100 transition-all cursor-pointer'">
+                        [class]="preferredCategories.includes(cat) 
+                  ? 'px-4 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-[13px] font-bold transition-all cursor-pointer active:scale-95' 
+                  : 'px-4 py-2 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl text-[13px] font-medium hover:bg-gray-100 transition-all cursor-pointer active:scale-95'">
                         {{ cat }}
                      </button>
                   </div>
@@ -409,26 +417,12 @@
             <!-- Action Bar -->
             <div class="mt-12 flex justify-end">
                <button (click)="saveSettings()"
-                  class="px-10 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg shadow-green-200 hover:shadow-green-300 transform active:scale-95 transition-all border-none cursor-pointer">
+                  class="btn-primary">
                   Save Changes
                </button>
             </div>
 
          </div>
       </div>
-   </div>
-</div>
-
-<!-- Toast Notification -->
-<div *ngIf="showToast()"
-   class="fixed bottom-8 right-8 z-50 flex items-center gap-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-black/20 animate-in slide-in-from-bottom-4 duration-300">
-   <div class="w-8 h-8 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-      </svg>
-   </div>
-   <div>
-      <p class="text-sm font-bold m-0 leading-none mb-1">Success!</p>
-      <p class="text-xs text-gray-400 m-0">Your settings have been updated.</p>
    </div>
 </div>

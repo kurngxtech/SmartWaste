@@ -38,6 +38,12 @@ export class MealPlannerPage {
    modalDay = signal<DayOfWeek>('Mon');
    modalSlot = signal<MealSlot>('Breakfast');
    prefillRecipe = signal<Recipe | null>(null);
+   showToast = signal(false);
+
+   triggerToast() {
+      this.showToast.set(true);
+      setTimeout(() => this.showToast.set(false), 3000);
+   }
 
    readonly calendarDays = computed<CalendarDay[]>(() => {
       const today = new Date();
@@ -112,6 +118,7 @@ export class MealPlannerPage {
       this.svc.addPlan(dto);
       this.showModal.set(false);
       this.prefillRecipe.set(null);
+      this.triggerToast();
    }
 
    onCloseModal(): void {

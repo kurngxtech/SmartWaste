@@ -1,13 +1,63 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
-import { RouterLink } from '@angular/router';
+import { UserSettingsService } from '../../services/user-settings.service';
 
 @Component({
    selector: 'app-user-detail-page',
    standalone: true,
-   imports: [CommonModule, SideBarNavigation, Header, RouterLink],
+   imports: [CommonModule, FormsModule, SideBarNavigation, Header],
    templateUrl: './user-detail-page.html'
 })
-export class UserDetailPage { }
+export class UserDetailPage {
+   settingsService = inject(UserSettingsService);
+
+   showToast = signal(false);
+   isUploadingAvatar = signal(false);
+   isPreviewOpen = signal(false);
+
+   openPreview() { this.isPreviewOpen.set(true); }
+   closePreview() { this.isPreviewOpen.set(false); }
+
+   saveChanges() {
+      this.showToast.set(true);
+      setTimeout(() => this.showToast.set(false), 3000);
+   }
+
+   get profile() { return this.settingsService.profile(); }
+   get preferences() { return this.settingsService.preferences(); }
+
+   updateName(val: string) { this.settingsService.updateProfile({ name: val }); }
+   updateEmail(val: string) { this.settingsService.updateProfile({ email: val }); }
+   updatePhone(val: string) { this.settingsService.updateProfile({ phone: val }); }
+   updateHouseholdSize(val: number) { this.settingsService.updateProfile({ householdSize: val }); }
+
+   updateExpiryAlerts(val: boolean) { this.settingsService.updatePreferences({ expiryAlerts: val }); }
+   updateDonationUpdates(val: boolean) { this.settingsService.updatePreferences({ donationUpdates: val }); }
+   updateWeeklySummary(val: boolean) { this.settingsService.updatePreferences({ weeklySummary: val }); }
+
+   toggleDiet(diet: string) { this.settingsService.toggleDiet(diet); }
+   
+   get availableDiets() { return ['Vegetarian', 'Vegan', 'Halal', 'Gluten-Free', 'Dairy-Free', 'Nut-Free']; }
+
+   onFileSelected(event: Event) {
+      const input = event.target as HTMLInputElement;
+      if (input.files && input.files[0]) {
+         const file = input.files[0];
+         this.isUploadingAvatar.set(true);
+
+         const reader = new FileReader();
+         reader.onload = (e: any) => {
+            setTimeout(() => {
+               this.settingsService.updateProfile({ avatarUrl: e.target.result });
+               this.isUploadingAvatar.set(false);
+               this.showToast.set(true);
+               setTimeout(() => this.showToast.set(false), 3000);
+            }, 1200);
+         };
+         reader.readAsDataURL(file);
+      }
+   }
+}

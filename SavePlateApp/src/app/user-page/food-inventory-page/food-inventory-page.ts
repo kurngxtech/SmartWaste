@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -53,6 +53,13 @@ export class FoodInventoryPageComponent implements OnInit {
    editingItemId: string | null = null;
 
    today = new Date(); // Will be synced from service in ngOnInit
+
+   showToast = signal(false);
+
+   triggerToast() {
+      this.showToast.set(true);
+      setTimeout(() => this.showToast.set(false), 3000);
+   }
 
    constructor(
       private fb: FormBuilder,
@@ -172,6 +179,10 @@ export class FoodInventoryPageComponent implements OnInit {
       this.updateItemStatuses();
       this.applyFilters();
       this.closeAddModal();
+      
+      if (this.isEditMode) {
+         this.triggerToast();
+      }
    }
 
    // Mark as Used Logic

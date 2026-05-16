@@ -8,12 +8,20 @@
 
       <!-- Toast Notification -->
       <div *ngIf="toastMessage"
-         class="absolute top-20 right-8 z-50 px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 transition-all duration-300 transform translate-y-0 opacity-100"
-         [ngClass]="toastType === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'">
-         <svg *ngIf="toastType === 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-         </svg>
-         <span class="font-medium font-sans">{{ toastMessage }}</span>
+         class="absolute top-20 right-8 z-[60] flex items-center gap-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-black/20 animate-in slide-in-from-top-4 duration-300">
+         <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+            [ngClass]="toastType === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'">
+            <svg *ngIf="toastType === 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <svg *ngIf="toastType === 'error'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+         </div>
+         <div>
+            <p class="text-sm font-bold m-0 leading-none mb-1">{{ toastType === 'success' ? 'Success!' : 'Error!' }}</p>
+            <p class="text-xs text-gray-400 m-0">{{ toastMessage }}</p>
+         </div>
       </div>
 
       <!-- Main Content -->
@@ -60,7 +68,7 @@
             </div>
 
             <button (click)="applyFilters()"
-               class="bg-green-600 hover:bg-green-700 w-full xl:w-auto text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center justify-center whitespace-nowrap">
+               class="btn-primary w-full xl:w-auto">
                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">

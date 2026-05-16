@@ -24,23 +24,6 @@
   margin: 0;
 }
 
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffff;
-  background: #4f7942;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s;
-}
-
-.btn-primary:hover { background: #3d6132; }
 
 .btn-primary-outline {
   padding: 8px 16px;

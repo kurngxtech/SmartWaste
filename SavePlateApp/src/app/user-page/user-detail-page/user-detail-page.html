@@ -1,28 +1,219 @@
-<div class="flex h-screen bg-gray-100 font-sans overflow-hidden">
+<div class="flex h-screen bg-gray-50 font-sans overflow-hidden">
    <app-side-bar-navigation></app-side-bar-navigation>
 
-   <div class="flex flex-col flex-1 overflow-hidden">
+   <div class="flex flex-col flex-1 overflow-hidden relative">
       <app-header></app-header>
 
-      <div class="flex-1 flex items-center justify-center bg-gray-50 p-6">
-         <div
-            class="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center max-w-md w-full hover:shadow-md transition-shadow">
-            <div
-               class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-               </svg>
-            </div>
-            <h2 class="text-xl font-bold text-gray-900 mb-2">User Profile</h2>
-            <p class="text-sm text-gray-500">This feature will be continued on Iteration 2.</p>
-            <button
-               class="mt-6 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors cursor-pointer"
-               routerLink="/dashboard">
-               Return to Dashboard
-            </button>
+      <!-- Toast Notification -->
+      <div *ngIf="showToast()"
+         class="absolute top-20 right-8 z-[60] flex items-center gap-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-black/20 animate-in slide-in-from-top-4 duration-300">
+         <div class="w-8 h-8 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+         </div>
+         <div>
+            <p class="text-sm font-bold m-0 leading-none mb-1">Success!</p>
+            <p class="text-xs text-gray-400 m-0">Your profile has been updated.</p>
          </div>
       </div>
 
+      <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/50">
+         <div class="max-w-5xl mx-auto space-y-8 pb-12">
+
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+               <div>
+                  <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Account Settings</h1>
+                  <p class="text-gray-500 mt-1">Manage your profile and preferences.</p>
+               </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               <!-- Left Column: Profile Card -->
+               <div class="lg:col-span-1 space-y-6">
+                  <div
+                     class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+                     <div class="flex flex-col items-center text-center">
+                        <div class="relative group">
+                           <input type="file" #fileInput accept="image/*" class="hidden"
+                              (change)="onFileSelected($event)">
+                           <div (click)="openPreview()"
+                              class="w-28 h-28 rounded-full bg-gradient-to-tr from-green-400 to-emerald-600 p-1 shadow-lg relative cursor-pointer hover:scale-105 transition-transform duration-200">
+                              <div class="w-full h-full bg-white rounded-full p-1 overflow-hidden relative">
+                                 <img [src]="profile.avatarUrl" alt="Profile"
+                                    class="w-full h-full rounded-full object-cover">
+
+                                 <!-- Loading Overlay -->
+                                 <div *ngIf="isUploadingAvatar()"
+                                    class="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center z-10 rounded-full">
+                                    <svg class="animate-spin w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24">
+                                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                          stroke-width="4"></circle>
+                                       <path class="opacity-75" fill="currentColor"
+                                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                       </path>
+                                    </svg>
+                                 </div>
+                              </div>
+                           </div>
+                           <div (click)="fileInput.click(); $event.stopPropagation()"
+                              class="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-md text-gray-700 hover:text-green-600 transition-colors border border-gray-100 z-20 cursor-pointer hover:scale-110 active:scale-95">
+                              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                           </div>
+                        </div>
+                        <h2 class="mt-4 text-xl font-bold text-gray-900">{{ profile.name }}</h2>
+                        <p class="text-sm text-gray-500 font-medium">Food Saver Enthusiast</p>
+
+                        <div class="w-full mt-6 space-y-3">
+                           <div
+                              class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                              <span class="text-sm text-gray-500">Joined</span>
+                              <span class="text-sm font-semibold text-gray-800">May 2026</span>
+                           </div>
+                           <div
+                              class="flex justify-between items-center p-3 bg-green-50 rounded-xl border border-green-100">
+                              <span class="text-sm text-green-700">Items Saved</span>
+                              <span class="text-sm font-bold text-green-700">142</span>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Dietary Preferences -->
+                  <div
+                     class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+                     <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        Dietary Needs
+                     </h3>
+                     <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let diet of availableDiets" (click)="toggleDiet(diet)"
+                           [class]="preferences.diets.includes(diet) ? 'px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium border border-green-200 cursor-pointer hover:bg-green-200 active:scale-95 active:bg-green-300 transition-all' : 'px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium border border-gray-200 cursor-pointer hover:bg-gray-200 active:scale-95 active:bg-gray-300 transition-all'">
+                           {{ diet }}
+                        </span>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Right Column: Settings Forms -->
+               <div class="lg:col-span-2 space-y-6">
+                  <!-- Personal Info Card -->
+                  <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+                     <h3 class="text-xl font-bold text-gray-900 mb-6">Personal Information</h3>
+                     <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                           <label class="text-sm font-medium text-gray-700">Full Name</label>
+                           <input type="text" [ngModel]="profile.name" (ngModelChange)="updateName($event)" name="name"
+                              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-gray-800">
+                        </div>
+                        <div class="space-y-2">
+                           <label class="text-sm font-medium text-gray-700">Email Address</label>
+                           <input type="email" [ngModel]="profile.email" (ngModelChange)="updateEmail($event)"
+                              name="email"
+                              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-gray-800">
+                        </div>
+                        <div class="space-y-2">
+                           <label class="text-sm font-medium text-gray-700">Phone Number</label>
+                           <input type="tel" [ngModel]="profile.phone" (ngModelChange)="updatePhone($event)"
+                              name="phone"
+                              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-gray-800">
+                        </div>
+                        <div class="space-y-2">
+                           <label class="text-sm font-medium text-gray-700 flex justify-between">
+                              <span>Household Size</span>
+                              <span class="text-xs text-gray-500 font-normal mt-0.5">{{ profile.householdSize === 1 ?
+                                 'Person' : 'People' }} in household</span>
+                           </label>
+                           <div
+                              class="flex items-center w-full bg-gray-50 border border-gray-200 rounded-xl p-1.5 transition-all">
+                              <button type="button"
+                                 (click)="updateHouseholdSize(profile.householdSize > 1 ? profile.householdSize - 1 : 1)"
+                                 class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-white rounded-lg transition-all border-none bg-transparent cursor-pointer font-bold text-lg active:scale-95">
+                                 −
+                              </button>
+                              <span class="flex-1 text-center text-lg font-bold text-gray-900">{{ profile.householdSize
+                                 }}</span>
+                              <button type="button" (click)="updateHouseholdSize(profile.householdSize + 1)"
+                                 class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-white rounded-lg transition-all border-none bg-transparent cursor-pointer font-bold text-lg active:scale-95">
+                                 +
+                              </button>
+                           </div>
+                        </div>
+                     </form>
+                  </div>
+
+                  <!-- Security / Danger Zone -->
+                  <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-red-100">
+                     <h3 class="text-xl font-bold text-red-600 mb-2">Danger Zone</h3>
+                     <p class="text-sm text-gray-500 mb-6">Irreversible and destructive actions.</p>
+
+                     <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-red-200 bg-red-50/50">
+                        <div>
+                           <h4 class="font-semibold text-gray-900">Delete Account</h4>
+                           <p class="text-sm text-gray-600 mt-1">Permanently delete your data and inventory.</p>
+                        </div>
+                        <button class="btn-danger shrink-0">
+                           Delete Account
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Save Changes Button -->
+            <div class="mt-6 flex justify-end">
+               <button class="btn-primary" (click)="saveChanges()">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  Save Changes
+               </button>
+            </div>
+
+
+         </div>
+      </main>
+   </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div *ngIf="isPreviewOpen()"
+   class="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+   <div class="relative flex flex-col items-center">
+      <!-- Close Button -->
+      <button (click)="closePreview()"
+         class="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors p-2 z-50">
+         <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+         </svg>
+      </button>
+
+      <!-- Modal Content Wrapper (Controls the width of both image and button) -->
+      <div class="flex flex-col w-64 sm:w-80 md:w-96 gap-4">
+         <!-- Image Preview -->
+         <div
+            class="relative w-full aspect-square rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border-4 border-white/10">
+            <img [src]="profile.avatarUrl" alt="Profile Preview" class="w-full h-full object-cover">
+         </div>
+
+         <!-- Change Photo Button -->
+         <button (click)="fileInput.click(); closePreview()"
+            class="w-full py-4 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98]">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Change Profile Picture
+         </button>
+      </div>
    </div>
 </div>
