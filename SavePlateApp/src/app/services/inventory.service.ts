@@ -12,6 +12,7 @@ export interface InventoryItem {
    daysLeft?: number;
    isUsed?: boolean;
    isPlanned?: boolean;
+   isClaimed?: boolean;
 }
 
 @Injectable({
@@ -19,15 +20,15 @@ export interface InventoryItem {
 })
 export class InventoryService {
    private _items = signal<InventoryItem[]>([
-      { id: '1', name: 'Spinach', category: 'Vegetable', quantity: 2, expiryDate: '2026-04-22', location: 'Fridge', status: '', note: 'Organic' },
-      { id: '2', name: 'Milk', category: 'Dairy', quantity: 1, expiryDate: '2026-04-20', location: 'Fridge', status: '', note: '-' },
+      { id: '1', name: 'Spinach', category: 'Vegetable', quantity: 2, expiryDate: '2026-05-20', location: 'Fridge', status: '', note: 'Organic' },
+      { id: '2', name: 'Milk', category: 'Dairy', quantity: 1, expiryDate: '2026-05-18', location: 'Fridge', status: '', note: '-' },
       { id: '3', name: 'Rice', category: 'Grain', quantity: 5, expiryDate: '2026-12-01', location: 'Pantry', status: '', note: 'Jasmine rice' },
-      { id: '4', name: 'Chicken Breast', category: 'Meat', quantity: 3, expiryDate: '2026-04-25', location: 'Freezer', status: '', note: '-' },
-      { id: '5', name: 'Apple', category: 'Fruit', quantity: 6, expiryDate: '2026-05-10', location: 'Fridge', status: '', note: '-' },
-      { id: '6', name: 'Pork Belly', category: 'Meat', quantity: 1, expiryDate: '2026-04-25', location: 'Freezer', status: '', note: '-' }
+      { id: '4', name: 'Chicken Breast', category: 'Meat', quantity: 3, expiryDate: '2026-05-25', location: 'Freezer', status: '', note: '-' },
+      { id: '5', name: 'Apple', category: 'Fruit', quantity: 6, expiryDate: '2026-05-15', location: 'Fridge', status: '', note: '-' },
+      { id: '6', name: 'Pork Belly', category: 'Meat', quantity: 1, expiryDate: '2026-05-19', location: 'Freezer', status: '', note: '-' }
    ]);
 
-   today = new Date('2026-04-19T00:00:00');
+   today = new Date();
 
    readonly items = this._items.asReadonly();
 
@@ -38,7 +39,7 @@ export class InventoryService {
    refreshStatuses() {
       this._items.update(items => {
          return items.map(item => {
-            if (item.status === 'Donated') return item;
+            if (item.status === 'Donated' || item.status === 'Planned') return item;
 
             const expDate = new Date(item.expiryDate);
             const diffTime = expDate.getTime() - this.today.getTime();
@@ -101,11 +102,28 @@ export class InventoryService {
       this._items.set(newItems);
    }
 
+   updateItem(updatedItem: InventoryItem) {
+      this._items.update(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
+   }
+
    addItem(item: InventoryItem) {
       this._items.update(items => [...items, item]);
    }
 
    removeItem(id: string) {
       this._items.update(items => items.filter(i => i.id !== id));
+   }
+
+   getItemById(id: string): InventoryItem | undefined {
+      return this._items().find(i => i.id === id);
+   }
+
+   planItem(id: string) {
+      this._items.update(items => items.map(item => {
+         if (item.id === id) {
+            return { ...item, isPlanned: true, status: 'Planned' };
+         }
+         return item;
+      }));
    }
 }

@@ -25,46 +25,43 @@ export class NotificationService {
          type: (n.type === 'danger' ? 'danger' : n.type) as any
       }));
 
-      // 2. Get alerts from AnalyticsService and convert to AppNotification
-      // Note: Since AnalyticsService.getAlerts() doesn't use signals yet, 
-      // this won't auto-update unless AnalyticsService is changed.
-      // However, it will update when inventoryService changes.
-      const analyticsNotifs: AppNotification[] = this.analyticsService.getAlerts().map((alert, index) => {
-         let type: 'danger' | 'warning' | 'success' | 'info' = 'info';
-         let icon = '';
-         let action = 'View Details';
-
-         if (alert.type === 'success') {
-            type = 'success';
-            icon = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
-            action = 'View Donation';
-         } else if (alert.type === 'alert') {
-            type = 'danger';
-            icon = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
-            action = 'Check Item';
-         }
-
-         return {
-            id: `analytics-${index}`,
-            title: alert.title,
-            description: alert.subtitle,
-            time: 'Today',
-            type,
-            icon,
-            action,
+      // 2. Get donation alerts dynamically from InventoryService
+      const donatedNotifs: AppNotification[] = this.inventoryService.items()
+         .filter(item => item.status === 'Donated')
+         .map((item, index) => ({
+            id: `donated-${item.id}`,
+            title: 'DONATION SUCCESS',
+            description: `${item.quantity} of ${item.name} donated successfully`,
+            time: 'Just now',
+            type: 'success',
+            icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+            action: 'View Donation',
             isRead: false,
             details: {
-               impactText: type === 'success' 
-                  ? `Your donation was claimed! This helped save food and support the community.` 
-                  : `Please check your inventory to resolve this alert.`,
-               actionButtons: type === 'success'
-                  ? [{ label: 'View Donation', action: 'view_donation', style: 'primary' as const }]
-                  : [{ label: 'Check Item', action: 'check_item', style: 'primary' as const }]
+               impactText: `Your donation was registered! This helps save food and support the community.`,
+               actionButtons: [{ label: 'View Donation', action: 'view_donation', style: 'primary' as const }]
             }
-         };
-      });
+         }));
 
-      let allNotifs = [...inventoryNotifs, ...analyticsNotifs];
+      // 3. Get claimed alerts from InventoryService
+      const claimedNotifs: AppNotification[] = this.inventoryService.items()
+         .filter(item => item.isClaimed)
+         .map((item) => ({
+            id: `claimed-${item.id}`,
+            title: 'ITEM CLAIMED',
+            description: `You successfully claimed ${item.name}.`,
+            time: 'Just now',
+            type: 'info',
+            icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+            action: 'View Inventory',
+            isRead: false,
+            details: {
+               impactText: `You've helped reduce food waste by claiming this item! It has been added to your inventory.`,
+               actionButtons: [{ label: 'View Inventory', action: 'view_inventory', style: 'primary' as const }]
+            }
+         }));
+
+      let allNotifs = [...inventoryNotifs, ...donatedNotifs, ...claimedNotifs];
 
       // Apply settings logic to filter notifications
       if (!prefs.expiryAlerts) {
@@ -77,7 +74,7 @@ export class NotificationService {
          allNotifs = allNotifs.filter(n => n.type !== 'info');
       }
 
-      return allNotifs;
+      return allNotifs.reverse();
    });
 
    getAllNotifications(): AppNotification[] {

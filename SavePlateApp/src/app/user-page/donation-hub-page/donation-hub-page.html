@@ -121,11 +121,22 @@
                </div>
 
                <div class="p-4 bg-gray-50 border-t border-gray-100">
-                  <button (click)="claimDonation(item)" [disabled]="item.status === 'Claimed'"
-                     class="w-full py-2 px-4 rounded-lg font-bold text-sm transition-colors flex items-center justify-center"
-                     [ngClass]="item.status === 'Claimed' ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-50 hover:bg-green-600 hover:text-white text-green-700 border border-green-200 hover:border-transparent'">
-                     {{ item.status === 'Claimed' ? 'Already Claimed' : 'Claim Donation' }}
-                  </button>
+                  <ng-container *ngIf="item.postedBy !== 'You'; else userDonationActions">
+                     <button (click)="claimDonation(item)" [disabled]="item.status === 'Claimed'"
+                        class="w-full py-2 px-4 rounded-lg font-bold text-sm transition-colors flex items-center justify-center"
+                        [ngClass]="item.status === 'Claimed' ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-50 hover:bg-green-600 hover:text-white text-green-700 border border-green-200 hover:border-transparent'">
+                        {{ item.status === 'Claimed' ? 'Already Claimed' : 'Claim Donation' }}
+                     </button>
+                  </ng-container>
+                  <ng-template #userDonationActions>
+                     <div class="flex flex-col gap-2">
+                        <span class="text-xs text-gray-500 font-medium text-center">3 Volunteers in your area are eligible to claim this</span>
+                        <button (click)="cancelDonation(item)"
+                           class="w-full py-2 px-4 rounded-lg font-bold text-sm transition-colors bg-red-50 text-red-700 border border-red-200 hover:bg-red-600 hover:text-white hover:border-transparent">
+                           Cancel Donation
+                        </button>
+                     </div>
+                  </ng-template>
                </div>
             </div>
 

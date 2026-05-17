@@ -6,9 +6,7 @@ import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { MealPlannerService } from '../../services/meal-planner';
 import { InventoryService, InventoryItem } from '../../services/inventory.service';
-import { Router } from '@angular/router';
-
-// Interface moved to service
+import { Router, ActivatedRoute } from '@angular/router';
 
 
 @Component({
@@ -65,7 +63,8 @@ export class FoodInventoryPageComponent implements OnInit {
       private fb: FormBuilder,
       private mealPlannerService: MealPlannerService,
       private inventoryService: InventoryService,
-      private router: Router
+      private router: Router,
+      private route: ActivatedRoute
    ) {
       this.addForm = this.fb.group({
          name: ['', Validators.required],
@@ -88,6 +87,15 @@ export class FoodInventoryPageComponent implements OnInit {
       this.items = [...this.inventoryService.items()];
       this.calculateSummary();
       this.applyFilters();
+
+      this.route.queryParams.subscribe(params => {
+         if (params['action'] === 'donate' && params['itemId']) {
+            const itemToDonate = this.items.find(i => i.id === params['itemId']);
+            if (itemToDonate) {
+               this.openDonateModal(itemToDonate);
+            }
+         }
+      });
    }
 
    updateItemStatuses() {
@@ -112,7 +120,7 @@ export class FoodInventoryPageComponent implements OnInit {
          const matchStatus = this.selectedStatus === 'All' || item.status === this.selectedStatus;
 
          return matchSearch && matchCategory && matchLocation && matchStatus;
-      });
+      }).reverse();
    }
 
    onFilterChange() {
@@ -266,6 +274,7 @@ export class FoodInventoryPageComponent implements OnInit {
          case 'Expiring soon': return 'bg-yellow-100 text-yellow-800';
          case 'Expired': return 'bg-red-100 text-red-800';
          case 'Donated': return 'bg-gray-100 text-gray-500';
+         case 'Planned': return 'bg-blue-100 text-blue-800';
          default: return 'bg-gray-100 text-gray-800';
       }
    }
