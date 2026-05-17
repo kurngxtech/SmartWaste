@@ -1,0 +1,14 @@
+Donation Hub Feature:
+- adding contact person number and username detail in donation list ✅
+
+sign up feature:
+- adding number input for each user whos first time creating account ✅
+
+Detail User Button NavBar:
+- syncronize profile picture ✅
+
+Notification Feature:
+- adding notification when user successfully claimed a food. ✅
+
+Account Settings:
+- adding feature logout

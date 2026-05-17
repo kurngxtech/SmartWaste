@@ -110,4 +110,8 @@ export class MealPlannerService {
    removePlan(id: number): void {
       this._plans.update(plans => plans.filter(p => p.id !== id));
    }
+
+   clearPlans(): void {
+      this._plans.set([]);
+   }
 }

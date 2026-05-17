@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { UserSettingsService } from '../../services/user-settings.service';
+import { Router } from '@angular/router';
+import { InventoryService } from '../../services/inventory.service';
+import { MealPlannerService } from '../../services/meal-planner';
 
 @Component({
    selector: 'app-user-detail-page',
@@ -13,13 +16,47 @@ import { UserSettingsService } from '../../services/user-settings.service';
 })
 export class UserDetailPage {
    settingsService = inject(UserSettingsService);
+   private router = inject(Router);
+   private inventoryService = inject(InventoryService);
+   private mealPlannerService = inject(MealPlannerService);
 
    showToast = signal(false);
    isUploadingAvatar = signal(false);
    isPreviewOpen = signal(false);
+   showLogoutModal = signal(false);
+   showDeleteModal1 = signal(false);
+   showDeleteModal2 = signal(false);
 
    openPreview() { this.isPreviewOpen.set(true); }
    closePreview() { this.isPreviewOpen.set(false); }
+
+   openLogoutConfirm() { this.showLogoutModal.set(true); }
+   closeLogoutConfirm() { this.showLogoutModal.set(false); }
+
+   confirmLogout() {
+      this.closeLogoutConfirm();
+      this.router.navigate(['/login']);
+   }
+
+   openDeleteConfirm() { this.showDeleteModal1.set(true); }
+   closeDeleteConfirm() { 
+      this.showDeleteModal1.set(false); 
+      this.showDeleteModal2.set(false);
+   }
+   
+   proceedToDelete2() {
+      this.showDeleteModal1.set(false);
+      this.showDeleteModal2.set(true);
+   }
+
+   confirmDelete() {
+      this.inventoryService.updateItems([]);
+      this.mealPlannerService.clearPlans();
+      this.settingsService.resetSettings();
+      
+      this.closeDeleteConfirm();
+      this.router.navigate(['/login']);
+   }
 
    saveChanges() {
       this.showToast.set(true);

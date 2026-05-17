@@ -91,4 +91,30 @@ export class UserSettingsService {
    removePickupLocation(loc: string) {
       this.preferences.update(p => ({ ...p, pickupLocations: p.pickupLocations.filter(l => l !== loc) }));
    }
+
+   resetSettings() {
+      this.profile.set({
+         name: '',
+         email: '',
+         phone: '',
+         householdSize: 1,
+         avatarUrl: ''
+      });
+      this.preferences.set({
+         expiryAlerts: true,
+         donationUpdates: true,
+         weeklySummary: false,
+         diets: [],
+         twoFactorEnabled: false,
+         donationVisibility: 'private',
+         locationPrivacy: 'neighborhood',
+         dataAnalyticsOptIn: false,
+         expiryThreshold: 3,
+         alertMealReminders: false,
+         deliveryChannel: 'app',
+         storageLocations: ['Main Fridge', 'Pantry'],
+         pickupLocations: ['Home'],
+         preferredCategories: []
+      });
+   }
 }
