@@ -62,7 +62,14 @@ export class NotificationsPage {
       } else if (action === 'remove') {
          this.inventoryService.removeItem(targetNotif.id);
       } else if (action === 'dismiss') {
-         // Just close the modal
+         if (targetNotif.id.startsWith('claimed-')) {
+            const actualId = targetNotif.id.replace('claimed-', '');
+            const item = this.inventoryService.getItemById(actualId);
+            if (item) {
+               item.isClaimed = false;
+               this.inventoryService.updateItem(item);
+            }
+         }
       }
       
       this.closeNotifModal();

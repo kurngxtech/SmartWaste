@@ -51,7 +51,7 @@ export class NotificationService {
             title: 'ITEM CLAIMED',
             description: `You successfully claimed ${item.name}.`,
             time: 'Just now',
-            type: 'info',
+            type: 'success',
             icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
             action: 'View Inventory',
             isRead: false,
