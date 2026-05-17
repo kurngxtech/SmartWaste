@@ -34,11 +34,12 @@ export class NotificationsPage {
       this.selectedNotif = null;
    }
 
-   handleAction(action: string) {
-      if (!this.selectedNotif) return;
+   handleAction(action: string, notif?: any) {
+      const targetNotif = notif || this.selectedNotif;
+      if (!targetNotif) return;
 
       if (action === 'plan') {
-         const item = this.inventoryService.getItemById(this.selectedNotif.id);
+         const item = this.inventoryService.getItemById(targetNotif.id);
          if (item && !item.isPlanned) {
             this.inventoryService.planItem(item.id);
             this.mealPlannerService.syncInventoryItem(item);
@@ -53,13 +54,13 @@ export class NotificationsPage {
          }
          this.router.navigate(['/planner']);
       } else if (action === 'donate') {
-         this.router.navigate(['/inventory'], { queryParams: { action: 'donate', itemId: this.selectedNotif.id } });
+         this.router.navigate(['/inventory'], { queryParams: { action: 'donate', itemId: targetNotif.id } });
       } else if (action === 'view_donation') {
          this.router.navigate(['/donations']);
       } else if (action === 'view_inventory') {
          this.router.navigate(['/inventory']);
       } else if (action === 'remove') {
-         this.inventoryService.removeItem(this.selectedNotif.id);
+         this.inventoryService.removeItem(targetNotif.id);
       } else if (action === 'dismiss') {
          // Just close the modal
       }

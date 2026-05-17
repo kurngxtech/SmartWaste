@@ -47,10 +47,25 @@
                      </p>
 
                      <div class="flex items-center gap-3">
-                        <button (click)="$event.stopPropagation()"
-                           class="px-5 py-2 text-[13px] font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors cursor-pointer border-none shadow-sm">
-                           {{ notif.action }}
-                        </button>
+                        <ng-container *ngIf="notif.details?.actionButtons as actionButtons; else defaultListAction">
+                           <button *ngFor="let btn of actionButtons"
+                              (click)="$event.stopPropagation(); handleAction(btn.action, notif)"
+                              class="px-5 py-2 text-[13px] font-medium text-white rounded-lg transition-colors cursor-pointer border-none shadow-sm"
+                              [ngClass]="{
+                                 'bg-green-600 hover:bg-green-700': btn.style === 'primary',
+                                 'bg-gray-800 hover:bg-gray-900': btn.style === 'secondary',
+                                 'bg-red-600 hover:bg-red-700': btn.style === 'danger'
+                              }">
+                              {{ btn.label }}
+                           </button>
+                        </ng-container>
+                        <ng-template #defaultListAction>
+                           <button *ngIf="notif.action"
+                              (click)="$event.stopPropagation(); openNotifModal(notif)"
+                              class="px-5 py-2 text-[13px] font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors cursor-pointer border-none shadow-sm">
+                              {{ notif.action }}
+                           </button>
+                        </ng-template>
                      </div>
                   </div>
 
