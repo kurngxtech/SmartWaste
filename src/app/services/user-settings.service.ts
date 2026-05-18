@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 export interface UserProfile {
    name: string;
@@ -29,92 +30,169 @@ export interface UserPreferences {
    providedIn: 'root'
 })
 export class UserSettingsService {
-   public profile = signal<UserProfile>({
-      name: 'Bagus Kurniawan',
-      email: 'bagusstudy24@gmail.com',
-      phone: '+60 12-345-6789',
-      householdSize: 3,
-      avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026024d'
-   });
+   private http = inject(HttpClient);
 
-   public preferences = signal<UserPreferences>({
-      expiryAlerts: true,
-      donationUpdates: true,
-      weeklySummary: false,
-      diets: ['Vegetarian', 'Halal'],
-      twoFactorEnabled: false,
-      donationVisibility: 'public',
-      locationPrivacy: 'neighborhood',
-      dataAnalyticsOptIn: true,
-      expiryThreshold: 3,
-      alertMealReminders: false,
-      deliveryChannel: 'both',
-      storageLocations: ['Main Fridge', 'Pantry', 'Freezer'],
-      pickupLocations: ['Home', 'Office'],
-      preferredCategories: ['Vegetarian']
-   });
+   public profile = signal<UserProfile>(this._loadProfile());
+   public preferences = signal<UserPreferences>(this._defaultPreferences());
+
+   constructor() {
+      if (typeof window !== 'undefined') {
+         // Attempt to load from backend if we already have a token
+         if (localStorage.getItem('accessToken')) {
+            this.loadFromBackend();
+         }
+      }
+   }
+
+   private _loadProfile(): UserProfile {
+      if (typeof window !== 'undefined') {
+         const raw = localStorage.getItem('user');
+         if (raw) {
+            try {
+               const u = JSON.parse(raw);
+               return {
+                  name: u.name || u.username || 'User',
+                  email: u.email || '',
+                  phone: u.phone || '+60 12-345-6789',
+                  householdSize: u.householdSize || 1,
+                  avatarUrl: u.avatarUrl || ''
+               };
+            } catch (_) { /* fall through */ }
+         }
+      }
+      return this._defaultProfile();
+   }
+
+   public loadFromBackend() {
+      this.http.get<{ success: boolean, data: any }>('/api/auth/profile').subscribe({
+         next: (res) => {
+            if (res.success && res.data) {
+               const u = res.data;
+               this.profile.set({
+                  name: u.name,
+                  email: u.email,
+                  phone: u.phone,
+                  householdSize: u.householdSize,
+                  avatarUrl: u.avatarUrl
+               });
+               this.preferences.set({
+                  expiryAlerts: u.expiryAlerts,
+                  donationUpdates: u.donationUpdates,
+                  weeklySummary: u.weeklySummary,
+                  diets: u.diets,
+                  twoFactorEnabled: u.twoFactorEnabled,
+                  donationVisibility: u.donationVisibility,
+                  locationPrivacy: u.locationPrivacy,
+                  dataAnalyticsOptIn: u.dataAnalyticsOptIn,
+                  expiryThreshold: u.expiryThreshold,
+                  alertMealReminders: u.alertMealReminders,
+                  deliveryChannel: u.deliveryChannel,
+                  storageLocations: u.storageLocations,
+                  pickupLocations: u.pickupLocations,
+                  preferredCategories: u.preferredCategories
+               });
+            }
+         },
+         error: (err) => console.error('Failed to load user profile from backend', err)
+      });
+   }
+
+   private _persistToBackend(data: Partial<UserProfile & UserPreferences>) {
+      this.http.put<{ success: boolean, data: any }>('/api/auth/profile', data).subscribe({
+         next: (res) => {
+            if (res.success && res.data) {
+               const u = res.data;
+               // Update local signals
+               this.profile.update(p => ({ ...p, name: u.name, phone: u.phone, householdSize: u.householdSize, avatarUrl: u.avatarUrl }));
+               this.preferences.update(p => ({
+                  ...p,
+                  expiryAlerts: u.expiryAlerts,
+                  donationUpdates: u.donationUpdates,
+                  weeklySummary: u.weeklySummary,
+                  diets: u.diets,
+                  twoFactorEnabled: u.twoFactorEnabled,
+                  donationVisibility: u.donationVisibility,
+                  locationPrivacy: u.locationPrivacy,
+                  dataAnalyticsOptIn: u.dataAnalyticsOptIn,
+                  expiryThreshold: u.expiryThreshold,
+                  alertMealReminders: u.alertMealReminders,
+                  deliveryChannel: u.deliveryChannel,
+                  storageLocations: u.storageLocations,
+                  pickupLocations: u.pickupLocations,
+                  preferredCategories: u.preferredCategories
+               }));
+            }
+         },
+         error: (err) => console.error('Failed to update user profile in backend', err)
+      });
+   }
+
+   private _defaultProfile(): UserProfile {
+      return { name: 'User', email: '', phone: '+60 12-345-6789', householdSize: 1 };
+   }
+
+   private _defaultPreferences(): UserPreferences {
+      return {
+         expiryAlerts: true,
+         donationUpdates: true,
+         weeklySummary: false,
+         diets: ['Vegetarian', 'Halal'],
+         twoFactorEnabled: false,
+         donationVisibility: 'public',
+         locationPrivacy: 'neighborhood',
+         dataAnalyticsOptIn: true,
+         expiryThreshold: 3,
+         alertMealReminders: false,
+         deliveryChannel: 'both',
+         storageLocations: ['Main Fridge', 'Pantry', 'Freezer'],
+         pickupLocations: ['Home', 'Office'],
+         preferredCategories: ['Vegetarian']
+      };
+   }
 
    updateProfile(data: Partial<UserProfile>) {
+      // Optimistically update local
       this.profile.update(p => ({ ...p, ...data }));
+      this._persistToBackend(data);
    }
 
    updatePreferences(data: Partial<UserPreferences>) {
       this.preferences.update(p => ({ ...p, ...data }));
+      this._persistToBackend(data);
    }
    
    toggleDiet(diet: string) {
-       this.preferences.update(p => {
-           const diets = p.diets.includes(diet) ? p.diets.filter(d => d !== diet) : [...p.diets, diet];
-           return { ...p, diets };
-       });
+      const diets = this.preferences().diets.includes(diet)
+         ? this.preferences().diets.filter(d => d !== diet)
+         : [...this.preferences().diets, diet];
+      this.updatePreferences({ diets });
    }
    
    toggleCategory(cat: string) {
-       this.preferences.update(p => {
-           const cats = p.preferredCategories.includes(cat) ? p.preferredCategories.filter(c => c !== cat) : [...p.preferredCategories, cat];
-           return { ...p, preferredCategories: cats };
-       });
+      const cats = this.preferences().preferredCategories.includes(cat)
+         ? this.preferences().preferredCategories.filter(c => c !== cat)
+         : [...this.preferences().preferredCategories, cat];
+      this.updatePreferences({ preferredCategories: cats });
    }
 
    addStorageLocation(loc: string) {
-      this.preferences.update(p => ({ ...p, storageLocations: [...p.storageLocations, loc] }));
+      this.updatePreferences({ storageLocations: [...this.preferences().storageLocations, loc] });
    }
 
    removeStorageLocation(loc: string) {
-      this.preferences.update(p => ({ ...p, storageLocations: p.storageLocations.filter(l => l !== loc) }));
+      this.updatePreferences({ storageLocations: this.preferences().storageLocations.filter(l => l !== loc) });
    }
 
    addPickupLocation(loc: string) {
-      this.preferences.update(p => ({ ...p, pickupLocations: [...p.pickupLocations, loc] }));
+      this.updatePreferences({ pickupLocations: [...this.preferences().pickupLocations, loc] });
    }
 
    removePickupLocation(loc: string) {
-      this.preferences.update(p => ({ ...p, pickupLocations: p.pickupLocations.filter(l => l !== loc) }));
+      this.updatePreferences({ pickupLocations: this.preferences().pickupLocations.filter(l => l !== loc) });
    }
 
    resetSettings() {
-      this.profile.set({
-         name: '',
-         email: '',
-         phone: '',
-         householdSize: 1,
-         avatarUrl: ''
-      });
-      this.preferences.set({
-         expiryAlerts: true,
-         donationUpdates: true,
-         weeklySummary: false,
-         diets: [],
-         twoFactorEnabled: false,
-         donationVisibility: 'private',
-         locationPrivacy: 'neighborhood',
-         dataAnalyticsOptIn: false,
-         expiryThreshold: 3,
-         alertMealReminders: false,
-         deliveryChannel: 'app',
-         storageLocations: ['Main Fridge', 'Pantry'],
-         pickupLocations: ['Home'],
-         preferredCategories: []
-      });
+      this.profile.set(this._defaultProfile());
+      this.preferences.set(this._defaultPreferences());
    }
 }

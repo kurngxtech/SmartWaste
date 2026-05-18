@@ -1,9 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { InventoryService } from '../../services/inventory.service';
+import { environment } from '../../../environments/environment';
 
 export interface DonationItem {
    id: string;
@@ -16,15 +18,6 @@ export interface DonationItem {
    phoneNumber: string;
 }
 
-const MOCK_DONATIONS: DonationItem[] = [
-   { id: '1', name: 'Fresh Apples', category: 'Fruit', expiryDate: '2026-05-25', pickupLocation: '123 Main St, Springfield', status: 'Available', postedBy: 'John Doe', phoneNumber: '+1 555-0101' },
-   { id: '2', name: 'Whole Wheat Bread', category: 'Grain', expiryDate: '2026-05-24', pickupLocation: '456 Elm St, Springfield', status: 'Available', postedBy: 'Jane Smith', phoneNumber: '+1 555-0102' },
-   { id: '3', name: 'Canned Beans', category: 'Other', expiryDate: '2027-01-10', pickupLocation: '789 Oak Ave, Springfield', status: 'Available', postedBy: 'Community Center', phoneNumber: '+1 555-0103' },
-   { id: '4', name: 'Carrots', category: 'Vegetable', expiryDate: '2026-05-28', pickupLocation: '101 Pine Ln, Springfield', status: 'Available', postedBy: 'Alice Johnson', phoneNumber: '+1 555-0104' },
-   { id: '5', name: 'Milk', category: 'Dairy', expiryDate: '2026-05-23', pickupLocation: '202 Cedar Rd, Springfield', status: 'Claimed', postedBy: 'Bob Brown', phoneNumber: '+1 555-0105' },
-   { id: '6', name: 'Pasta', category: 'Grain', expiryDate: '2026-10-15', pickupLocation: '303 Birch Blvd, Springfield', status: 'Available', postedBy: 'Carol White', phoneNumber: '+1 555-0106' }
-];
-
 @Component({
    selector: 'app-donation-hub-page',
    standalone: true,
@@ -34,9 +27,9 @@ const MOCK_DONATIONS: DonationItem[] = [
 })
 export class DonationHubPage implements OnInit {
    private inventoryService = inject(InventoryService);
+   private http = inject(HttpClient);
 
    donations: DonationItem[] = [];
-
    filteredDonations: DonationItem[] = [];
 
    // Filter states
@@ -50,26 +43,48 @@ export class DonationHubPage implements OnInit {
    // Toast feedback state
    toastMessage: string | null = null;
    toastType: 'success' | 'error' = 'success';
+   isLoading = false;
+
+   constructor(
+      private cdr: ChangeDetectorRef,
+      @Inject(PLATFORM_ID) private platformId: Object
+   ) {}
 
    ngOnInit() {
-      const userDonated = this.inventoryService.items()
-         .filter(item => item.status === 'Donated')
-         .map(item => ({
-            id: item.id,
-            name: item.name,
-            category: item.category,
-            expiryDate: item.expiryDate,
-            pickupLocation: 'Your Address',
-            status: 'Available' as const,
-            postedBy: 'You',
-            phoneNumber: 'Your Phone'
-         }));
+      if (!isPlatformBrowser(this.platformId)) return;
+      this.loadDonationsFromBackend();
+   }
 
-      this.donations = [
-         ...MOCK_DONATIONS,
-         ...userDonated
-      ].reverse();
-      this.filteredDonations = [...this.donations];
+   /**
+    * Fetch ALL donated items from the backend API (cross-user).
+    * This replaces the old approach of reading from local inventory signal.
+    */
+   loadDonationsFromBackend() {
+      this.isLoading = true;
+      this.http.get<any>(`${environment.apiUrl}/donations?_t=${Date.now()}`).subscribe({
+         next: (res) => {
+            this.isLoading = false;
+            if (res.success && res.data) {
+               this.donations = res.data.map((item: any) => ({
+                  id: item._id,
+                  name: item.name,
+                  category: item.category,
+                  expiryDate: item.expiryDate ? item.expiryDate.split('T')[0] : '',
+                  pickupLocation: item.notes || 'Contact donor',
+                  status: 'Available' as const,
+                  postedBy: item.userId?.name || 'Anonymous',
+                  phoneNumber: 'Contact via app'
+               }));
+               this.filteredDonations = [...this.donations];
+               this.cdr.detectChanges();
+            }
+         },
+         error: (err) => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+            console.error('Failed to load donations from backend', err);
+         }
+      });
    }
 
    applyFilters() {
@@ -101,20 +116,31 @@ export class DonationHubPage implements OnInit {
    claimDonation(item: DonationItem) {
       if (item.status === 'Claimed') return;
 
-      item.status = 'Claimed';
+      this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/claim`, {}).subscribe({
+         next: (res) => {
+            if (res.success) {
+               item.status = 'Claimed';
 
-      this.inventoryService.addItem({
-         name: item.name,
-         category: item.category,
-         quantity: 1,
-         expiryDate: item.expiryDate,
-         location: 'Fridge',
-         status: 'Good',
-         note: `Claimed from ${item.postedBy}`,
-         isClaimed: true
-      }).subscribe();
+               // Also add the claimed item to the current user's local inventory
+               this.inventoryService.addItem({
+                  name: item.name,
+                  category: item.category,
+                  quantity: 1,
+                  expiryDate: item.expiryDate,
+                  location: 'Fridge',
+                  status: 'Good',
+                  note: `Claimed from ${item.postedBy}`,
+                  isClaimed: true
+               }).subscribe();
 
-      this.showToast(`Successfully claimed ${item.name}! Added to your inventory.`, 'success');
+               this.showToast(`Successfully claimed ${item.name}! Added to your inventory.`, 'success');
+            }
+         },
+         error: (err) => {
+            const msg = err.error?.message || 'Failed to claim donation';
+            this.showToast(msg, 'error');
+         }
+      });
    }
 
    cancelDonation(item: DonationItem) {

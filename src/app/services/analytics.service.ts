@@ -1,8 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 
 @Injectable({
    providedIn: 'root'
@@ -22,11 +22,21 @@ export class AnalyticsService {
 
    // Fetch the real summary from the backend
    fetchSummary(): Observable<any> {
-      return this.http.get<any>(`${environment.apiUrl}/analytics/summary`).pipe(
+      return this.http.get<any>(`${environment.apiUrl}/analytics/summary?_t=${Date.now()}`).pipe(
          tap(res => {
-            if (res.success) {
-               this.summary.set(res.data);
+            if (res && res.success && res.data) {
+               // Map backend property names → frontend signal names
+               this.summary.set({
+                  totalUsed: res.data.usedItems ?? res.data.totalUsed ?? 0,
+                  totalDonated: res.data.donatedItems ?? res.data.totalDonated ?? 0,
+                  totalWasted: res.data.wastedItems ?? res.data.totalWasted ?? 0,
+                  wasteReductionRate: res.data.wasteReductionRate ?? 0
+               });
             }
+         }),
+         catchError(err => {
+            console.error('Failed to load analytics', err);
+            return of(null);
          })
       );
    }

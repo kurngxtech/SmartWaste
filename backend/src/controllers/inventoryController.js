@@ -62,7 +62,7 @@ const updateFoodItem = async (req, res) => {
     item = await FoodItem.findByIdAndUpdate(
       id,
       { $set: req.body },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     res.status(200).json({ success: true, data: item });

@@ -1,5 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
@@ -62,7 +62,9 @@ export class FoodInventoryPageComponent implements OnInit {
       private mealPlannerService: MealPlannerService,
       private inventoryService: InventoryService,
       private router: Router,
-      private route: ActivatedRoute
+      private route: ActivatedRoute,
+      private cdr: ChangeDetectorRef,
+      @Inject(PLATFORM_ID) private platformId: Object
    ) {
       this.addForm = this.fb.group({
          name: ['', Validators.required],
@@ -80,6 +82,9 @@ export class FoodInventoryPageComponent implements OnInit {
    }
 
    ngOnInit() {
+      // Only load data in the browser — SSR has no auth token
+      if (!isPlatformBrowser(this.platformId)) return;
+
       this.loadAllInventory();
 
       this.route.queryParams.subscribe(params => {
@@ -103,9 +108,11 @@ export class FoodInventoryPageComponent implements OnInit {
             this.items = [...this.inventoryService.items()];
             this.calculateSummary();
             this.applyFilters();
+            this.cdr.detectChanges();
          },
          error: () => {
             this.isLoading = false;
+            this.cdr.detectChanges();
          }
       });
    }

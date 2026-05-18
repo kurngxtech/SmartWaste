@@ -5,9 +5,8 @@ const Notification = require('../models/Notification'); // For notifying the don
 // @desc    Get all available donations from the community
 const getDonations = async (req, res) => {
   try {
-    // Fetch items with status 'donating' 
-    // Optionally exclude the current user's own items: { userId: { $ne: req.user.id } }
-    const donations = await FoodItem.find({ status: 'donating' })
+    // Fetch items with status 'donated' (the status the frontend sets when user donates)
+    const donations = await FoodItem.find({ status: 'donated' })
       .populate('userId', 'name') // get donor's name
       .sort({ expiryDate: 1 });
       
@@ -26,7 +25,7 @@ const claimDonation = async (req, res) => {
     
     const item = await FoodItem.findById(id);
 
-    if (!item || item.status !== 'donating') {
+    if (!item || item.status !== 'donated') {
       return res.status(404).json({ success: false, message: 'Donation not found or no longer available' });
     }
 

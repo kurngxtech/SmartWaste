@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { UserSettingsService } from '../../services/user-settings.service';
+import { AuthService } from '../../authentication/auth.service';
 
 @Component({
    selector: 'app-app-settings-page',
@@ -14,6 +15,7 @@ import { UserSettingsService } from '../../services/user-settings.service';
 })
 export class AppSettingsPage {
    settingsService = inject(UserSettingsService);
+   private authService = inject(AuthService);
 
    // ── Active Section Tab ──────────────────────────────────────────────
    activeTab = signal<string>('privacy');
@@ -33,7 +35,18 @@ export class AppSettingsPage {
    get dataAnalyticsOptIn() { return this.preferences.dataAnalyticsOptIn; }
 
    toggleTwoFactor() {
-      this.settingsService.updatePreferences({ twoFactorEnabled: !this.twoFactorEnabled });
+      const newState = !this.twoFactorEnabled;
+      // Persist to backend (MongoDB User model)
+      this.authService.toggle2FA(newState).subscribe({
+         next: () => {
+            this.settingsService.updatePreferences({ twoFactorEnabled: newState });
+         },
+         error: (err) => {
+            console.error('Failed to toggle 2FA on backend', err);
+            // Still update locally as fallback
+            this.settingsService.updatePreferences({ twoFactorEnabled: newState });
+         }
+      });
    }
    toggleDataAnalytics() {
       this.settingsService.updatePreferences({ dataAnalyticsOptIn: !this.dataAnalyticsOptIn });

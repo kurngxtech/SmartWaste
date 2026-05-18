@@ -16,60 +16,99 @@
                dummyaccount@gmail.com | pass: dummy1234!</p>
          </header>
 
-         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+         <!-- Login Form (hidden when 2FA is active) -->
+         <div *ngIf="!requiresTwoFactor">
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
 
-            <div *ngIf="emailNotFound"
-               class="p-3 mb-4 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
-               The email you used does not exist. We suggest you to <a routerLink="/signup"
-                  class="underline hover:text-white">create an account</a>.
+               <div *ngIf="emailNotFound"
+                  class="p-3 mb-4 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
+                  {{ serverError }}
+               </div>
+
+               <div>
+                  <label for="email" class="block text-sm font-semibold mb-2 ml-1">Email Address</label>
+                  <input type="email" id="email" formControlName="email" placeholder="name@example.com"
+                     class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white/20 transition-all duration-200"
+                     [ngClass]="{'border-red-400 ring-1 ring-red-400': f['email'].touched && f['email'].errors}" />
+                  <div *ngIf="f['email'].touched && f['email'].errors" class="mt-2 ml-1 text-xs text-red-300 font-medium">
+                     <span *ngIf="f['email'].errors['required']">Email is required.</span>
+                     <span *ngIf="f['email'].errors['email']">Please enter a valid email format.</span>
+                  </div>
+               </div>
+
+               <div>
+                  <div class="flex justify-between items-center mb-2 ml-1">
+                     <label for="password" class="text-sm font-semibold">Password</label>
+                     <a href="#" class="text-xs text-green-300 hover:text-white transition-colors">Forgot Password?</a>
+                  </div>
+                  <input type="password" id="password" formControlName="password" placeholder="••••••••"
+                     class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white/20 transition-all duration-200"
+                     [ngClass]="{'border-red-400 ring-1 ring-red-400': f['password'].touched && f['password'].errors}" />
+                  <div *ngIf="f['password'].touched && f['password'].errors"
+                     class="mt-2 ml-1 text-xs text-red-300 font-medium">
+                     <span *ngIf="f['password'].errors['required']">Password is required.</span>
+                     <span *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters.</span>
+                  </div>
+               </div>
+
+               <div class="flex items-center space-x-2 ml-1">
+                  <input type="checkbox" id="rememberMe" formControlName="rememberMe"
+                     class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer" />
+                  <label for="rememberMe" class="text-sm text-green-100 cursor-pointer select-none">Remember Me</label>
+               </div>
+
+               <button type="submit" [disabled]="loginForm.invalid || isLoading"
+                  class="btn-primary w-full py-4 text-lg">
+                  <span *ngIf="isLoading">Signing in...</span>
+                  <span *ngIf="!isLoading">Sign In</span>
+               </button>
+
+            </form>
+
+            <footer class="mt-12 text-center">
+               <p class="text-sm text-green-100">
+                  New to SavePlate?
+                  <a routerLink="/signup"
+                     class="font-bold text-white hover:underline underline-offset-4 cursor-pointer">Sign up</a>
+               </p>
+            </footer>
+         </div>
+
+         <!-- Two-Factor Authentication Panel -->
+         <div *ngIf="requiresTwoFactor" class="space-y-6">
+            <div class="text-center mb-4">
+               <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+                  <svg class="w-8 h-8 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path>
+                  </svg>
+               </div>
+               <h3 class="text-2xl font-bold">Two-Step Verification</h3>
+               <p class="text-green-100 opacity-80 mt-2">A 6-digit code has been sent to your email.<br>
+                  <span class="text-xs opacity-60">(Check the backend terminal for the code)</span>
+               </p>
             </div>
 
             <div>
-               <label for="email" class="block text-sm font-semibold mb-2 ml-1">Email Address</label>
-               <input type="email" id="email" formControlName="email" placeholder="name@example.com"
-                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white/20 transition-all duration-200"
-                  [ngClass]="{'border-red-400 ring-1 ring-red-400': f['email'].touched && f['email'].errors}" />
-               <div *ngIf="f['email'].touched && f['email'].errors" class="mt-2 ml-1 text-xs text-red-300 font-medium">
-                  <span *ngIf="f['email'].errors['required']">Email is required.</span>
-                  <span *ngIf="f['email'].errors['email']">Please enter a valid email format.</span>
+               <input type="text" [(ngModel)]="twoFactorCode" maxlength="6"
+                  class="w-full px-4 py-4 text-center tracking-[0.5em] text-2xl font-bold rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+                  placeholder="------"
+                  (keyup.enter)="verifyTwoFactor()">
+               <div *ngIf="twoFactorError" class="mt-2 ml-1 text-xs text-red-300 font-medium text-center">
+                  {{ twoFactorError }}
                </div>
             </div>
 
-            <div>
-               <div class="flex justify-between items-center mb-2 ml-1">
-                  <label for="password" class="text-sm font-semibold">Password</label>
-                  <a href="#" class="text-xs text-green-300 hover:text-white transition-colors">Forgot Password?</a>
-               </div>
-               <input type="password" id="password" formControlName="password" placeholder="••••••••"
-                  class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white/20 transition-all duration-200"
-                  [ngClass]="{'border-red-400 ring-1 ring-red-400': f['password'].touched && f['password'].errors}" />
-               <div *ngIf="f['password'].touched && f['password'].errors"
-                  class="mt-2 ml-1 text-xs text-red-300 font-medium">
-                  <span *ngIf="f['password'].errors['required']">Password is required.</span>
-                  <span *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters.</span>
-               </div>
-            </div>
-
-            <div class="flex items-center space-x-2 ml-1">
-               <input type="checkbox" id="rememberMe" formControlName="rememberMe"
-                  class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer" />
-               <label for="rememberMe" class="text-sm text-green-100 cursor-pointer select-none">Remember Me</label>
-            </div>
-
-            <button type="submit" [disabled]="loginForm.invalid"
-               class="btn-primary w-full py-4 text-lg">
-               Sign In
+            <button (click)="verifyTwoFactor()" [disabled]="isLoading"
+               class="w-full bg-white text-green-900 font-bold py-4 rounded-lg hover:bg-green-50 transition-colors">
+               <span *ngIf="isLoading">Verifying...</span>
+               <span *ngIf="!isLoading">Verify Code</span>
             </button>
-
-         </form>
-
-         <footer class="mt-12 text-center">
-            <p class="text-sm text-green-100">
-               New to SavePlate?
-               <a routerLink="/signup"
-                  class="font-bold text-white hover:underline underline-offset-4 cursor-pointer">Sign up</a>
+            
+            <p class="mt-4 text-center text-sm text-green-100">
+               <a href="javascript:void(0)" (click)="cancelTwoFactor()" class="hover:underline opacity-80">Cancel and back to login</a>
             </p>
-         </footer>
+         </div>
+
       </div>
 
    </div>

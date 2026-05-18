@@ -6,23 +6,40 @@ const mealPlanSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  title: {
+  name: {
     type: String,
     required: true,
   },
-  plannedDate: {
-    type: Date,
+  day: String,
+  slot: String,
+  date: {
+    type: String,
     required: true,
   },
   ingredients: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'FoodItem'
+    itemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FoodItem'
+    },
+    itemName: String,
+    quantity: Number
   }],
+  notes: String,
+  reminderEnabled: {
+    type: Boolean,
+    default: true
+  },
   completed: {
     type: Boolean,
     default: false,
   }
 }, { timestamps: true });
+
+// Ensure id virtualization for frontend matching
+mealPlanSchema.virtual('id').get(function() {
+  return this._id.toHexString();
+});
+mealPlanSchema.set('toJSON', { virtuals: true });
 
 const MealPlan = mongoose.model('MealPlan', mealPlanSchema);
 module.exports = MealPlan;

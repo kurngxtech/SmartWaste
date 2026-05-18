@@ -4,20 +4,25 @@ const {
   register,
   verifyEmail,
   login,
+  verify2FA,
+  toggle2FA,
   refreshToken,
-  logout
+  logout,
+  getProfile,
+  updateProfile
 } = require('../controllers/authController');
 const { protect } = require('../middlewares/authMiddleware');
 
 router.post('/register', register);
 router.post('/verify-email', verifyEmail);
 router.post('/login', login);
+router.post('/verify-2fa', verify2FA);
+router.post('/toggle-2fa', protect, toggle2FA);
 router.post('/refresh-token', refreshToken);
 router.post('/logout', logout);
 
-// Example protected route to demonstrate the middleware
-router.get('/profile', protect, (req, res) => {
-  res.status(200).json({ success: true, message: 'Welcome to your profile', userId: req.user.id });
-});
+router.route('/profile')
+  .get(protect, getProfile)
+  .put(protect, updateProfile);
 
 module.exports = router;

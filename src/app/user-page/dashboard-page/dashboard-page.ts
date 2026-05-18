@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, Inject, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy, Inject, PLATFORM_ID, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -30,6 +30,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
    totalFoodSavedItems: number = 0;
    totalDonationsItems: number = 0;
+   isLoading: boolean = true;
 
    // Filters
    dateRangeOptions = [6, 3, 1]; // Months
@@ -40,16 +41,31 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    constructor(
       private analyticsService: AnalyticsService,
       private inventoryService: InventoryService,
+      private cdr: ChangeDetectorRef,
       @Inject(PLATFORM_ID) private platformId: Object
    ) { }
 
    ngOnInit() {
-      // Dynamically fetch actual data from database
-      this.analyticsService.fetchSummary().subscribe(() => {
-         const data = this.analyticsService.summary();
-         this.totalFoodSavedItems = data.totalUsed;
-         this.totalDonationsItems = data.totalDonated;
-      });
+      // Only fetch data in the browser — SSR has no token and produces stale zeros
+      if (isPlatformBrowser(this.platformId)) {
+         this.isLoading = true;
+         this.analyticsService.fetchSummary().subscribe({
+            next: () => {
+               const data = this.analyticsService.summary();
+               this.totalFoodSavedItems = data.totalUsed;
+               this.totalDonationsItems = data.totalDonated;
+               this.isLoading = false;
+               this.cdr.detectChanges();
+            },
+            error: () => {
+               this.isLoading = false;
+               this.cdr.detectChanges();
+            }
+         });
+
+         // Also load inventory so notifications populate
+         this.inventoryService.loadItems().subscribe();
+      }
       
       this.chartData = this.analyticsService.getMonthlyImpactChart(this.selectedRange, this.selectedCategory);
    }

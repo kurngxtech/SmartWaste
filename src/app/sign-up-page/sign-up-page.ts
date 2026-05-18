@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -19,7 +19,7 @@ export class SignUpPageComponent {
    serverError = '';
    isLoading = false;
 
-   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
       this.signUpForm = this.fb.group({
          fullName: ['', [Validators.required]],
          email: ['', [Validators.required, Validators.email]],
@@ -48,6 +48,7 @@ export class SignUpPageComponent {
                if (res.success) {
                   this.isVerificationMode = true;
                }
+               this.cdr.detectChanges();
             },
             error: (err) => {
                this.isLoading = false;
@@ -55,6 +56,7 @@ export class SignUpPageComponent {
                if (this.serverError.includes('already registered')) {
                   this.notGoogleEmailError = true; // Use this flag to show generic error if needed
                }
+               this.cdr.detectChanges();
             }
          });
       } else {
@@ -77,11 +79,13 @@ export class SignUpPageComponent {
                if (res.success) {
                   this.router.navigate(['/login']);
                }
+               this.cdr.detectChanges();
             },
             error: (err) => {
                this.isLoading = false;
                this.verificationError = true;
                this.serverError = err.error?.message || 'Invalid code';
+               this.cdr.detectChanges();
             }
          });
       } else {

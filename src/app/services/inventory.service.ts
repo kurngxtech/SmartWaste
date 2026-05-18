@@ -39,7 +39,7 @@ export class InventoryService {
 
    // 1. Fetch all items from backend
    loadItems(): Observable<any> {
-      return this.http.get<any>(`${environment.apiUrl}/inventory`).pipe(
+      return this.http.get<any>(`${environment.apiUrl}/inventory?_t=${Date.now()}`).pipe(
          tap((res: any) => {
             if (res.success) {
                const mapped = res.data.map((item: any) => this.mapToFrontend(item));
@@ -93,16 +93,33 @@ export class InventoryService {
 
    // Helper: Refresh front-end calculated daysLeft and statuses
    refreshStatuses() {
+      // Get real time day today
+      this.today = new Date();
       this._items.update(items => {
          return items.map(item => {
-            // Respect terminal status
-            if (item.status === 'Donated' || item.status === 'Planned' || item.status === 'Used') return item;
+            let expDate = new Date(item.expiryDate);
+            if (isNaN(expDate.getTime()) && item.expiryDate) {
+               // Try parsing DD-MM-YYYY or DD/MM/YYYY
+               const parts = item.expiryDate.split(/[-/]/);
+               if (parts.length === 3) {
+                  // Assuming DD-MM-YYYY
+                  expDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+               }
+            }
 
-            const expDate = new Date(item.expiryDate);
-            const diffTime = expDate.getTime() - this.today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            let diffDays = 0;
+            if (!isNaN(expDate.getTime())) {
+               // Calculate using 00:00:00 to avoid timezone shift issues on the same day
+               const todayMidnight = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate());
+               const expMidnight = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate());
+               const diffTime = expMidnight.getTime() - todayMidnight.getTime();
+               diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
 
             item.daysLeft = diffDays;
+
+            // Respect terminal status for the label
+            if (item.status === 'Donated' || item.status === 'Planned' || item.status === 'Used') return item;
 
             if (diffDays <= 0) {
                item.status = 'Expired';

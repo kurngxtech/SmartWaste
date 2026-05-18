@@ -1,4 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import {
    MealPlan,
    AddMealDto,
@@ -16,18 +17,9 @@ import { inject } from '@angular/core';
 })
 export class MealPlannerService {
    private inventoryService = inject(InventoryService);
-   private _plans = signal<MealPlan[]>([
-      {
-         id: 1,
-         name: 'Spinach Omelette',
-         day: 'Mon',
-         slot: 'Breakfast',
-         date: '2026-04-20',
-         ingredients: [{ itemId: '1', itemName: 'Spinach', quantity: 1 }],
-         reminderEnabled: true,
-      },
-   ]);
-
+   private http = inject(HttpClient);
+   
+   private _plans = signal<MealPlan[]>([]);
    readonly plans = this._plans.asReadonly();
 
    private recipes: Recipe[] = [
@@ -48,6 +40,21 @@ export class MealPlannerService {
          requiredIngredients: ['Ground Beef', 'Carrots'],
       },
    ];
+   
+   constructor() {
+      this.loadPlans();
+   }
+
+   loadPlans(): void {
+      this.http.get<{ success: boolean, data: MealPlan[] }>('/api/mealplans').subscribe({
+         next: (res) => {
+            if (res.success) {
+               this._plans.set(res.data);
+            }
+         },
+         error: (err) => console.error('Failed to load meal plans', err)
+      });
+   }
 
    getAvailableInventory(): any[] {
       return this.inventoryService.items();
@@ -100,15 +107,25 @@ export class MealPlannerService {
    }
 
    addPlan(dto: AddMealDto): void {
-      const newPlan: MealPlan = {
-         ...dto,
-         id: Date.now(),
-      };
-      this._plans.update(plans => [...plans, newPlan]);
+      this.http.post<{ success: boolean, data: MealPlan }>('/api/mealplans', dto).subscribe({
+         next: (res) => {
+            if (res.success) {
+               this._plans.update(plans => [...plans, res.data]);
+               // Refresh inventory because quantities were reduced
+               this.inventoryService.loadItems().subscribe();
+            }
+         },
+         error: (err) => console.error('Failed to save meal plan', err)
+      });
    }
 
-   removePlan(id: number): void {
-      this._plans.update(plans => plans.filter(p => p.id !== id));
+   removePlan(id: number | string): void {
+      this.http.delete(`/api/mealplans/${id}`).subscribe({
+         next: () => {
+            this._plans.update(plans => plans.filter(p => String(p.id) !== String(id)));
+         },
+         error: (err) => console.error('Failed to remove meal plan', err)
+      });
    }
 
    clearPlans(): void {

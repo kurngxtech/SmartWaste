@@ -1,13 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../authentication/auth.service';
 
 @Component({
    selector: 'app-login-page',
    standalone: true,
-   imports: [CommonModule, ReactiveFormsModule, RouterLink],
+   imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
    templateUrl: './login-page.html'
 })
 export class LoginPage {
@@ -16,7 +16,13 @@ export class LoginPage {
    serverError = '';
    isLoading = false;
 
-   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+   // 2FA state
+   requiresTwoFactor = false;
+   twoFactorCode = '';
+   twoFactorError = '';
+   twoFactorEmail = ''; // Email of the user who needs 2FA
+
+   constructor(private fb: FormBuilder, public authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
       this.loginForm = this.fb.group({
          email: ['', [Validators.required, Validators.email]],
          password: ['', [Validators.required, Validators.minLength(6)]],
@@ -36,17 +42,58 @@ export class LoginPage {
             next: (res) => {
                this.isLoading = false;
                if (res.success) {
-                  this.router.navigate(['/dashboard']);
+                  if (res.requiresTwoFactor) {
+                     // Backend detected 2FA — show verification panel
+                     this.requiresTwoFactor = true;
+                     this.twoFactorEmail = res.user?.email || this.loginForm.value.email;
+                  } else {
+                     // No 2FA — go straight to dashboard
+                     this.router.navigate(['/dashboard']);
+                  }
                }
+               this.cdr.detectChanges();
             },
             error: (err) => {
                this.isLoading = false;
                this.emailNotFound = true;
                this.serverError = err.error?.message || 'Invalid email or password';
+               this.cdr.detectChanges();
             }
          });
       } else {
          this.loginForm.markAllAsTouched();
       }
+   }
+
+   verifyTwoFactor(): void {
+      if (this.twoFactorCode.length !== 6) {
+         this.twoFactorError = 'Please enter a valid 6-digit code';
+         return;
+      }
+
+      this.isLoading = true;
+      this.twoFactorError = '';
+
+      this.authService.verify2FA(this.twoFactorEmail, this.twoFactorCode).subscribe({
+         next: (res) => {
+            this.isLoading = false;
+            if (res.success) {
+               this.requiresTwoFactor = false;
+               this.router.navigate(['/dashboard']);
+            }
+            this.cdr.detectChanges();
+         },
+         error: (err) => {
+            this.isLoading = false;
+            this.twoFactorError = err.error?.message || 'Invalid verification code';
+            this.cdr.detectChanges();
+         }
+      });
+   }
+
+   cancelTwoFactor(): void {
+      this.requiresTwoFactor = false;
+      this.twoFactorCode = '';
+      this.twoFactorError = '';
    }
 }

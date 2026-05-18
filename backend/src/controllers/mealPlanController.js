@@ -6,8 +6,7 @@ const FoodItem = require('../models/FoodItem');
 const getMealPlans = async (req, res) => {
   try {
     const plans = await MealPlan.find({ userId: req.user.id })
-      .populate('ingredients')
-      .sort({ plannedDate: 1 });
+      .sort({ date: 1 });
     res.status(200).json({ success: true, data: plans });
   } catch (error) {
     console.error('[MealPlanController.getMealPlans] Error:', error);
@@ -19,20 +18,44 @@ const getMealPlans = async (req, res) => {
 // @desc    Create a new meal plan
 const createMealPlan = async (req, res) => {
   try {
-    const { title, plannedDate, ingredients } = req.body;
+    const { name, day, slot, date, ingredients, notes, reminderEnabled } = req.body;
 
-    if (!title || !plannedDate) {
-      return res.status(400).json({ success: false, message: 'Title and plannedDate are required' });
+    if (!name || !date) {
+      return res.status(400).json({ success: false, message: 'name and date are required' });
     }
 
     const newPlan = new MealPlan({
       userId: req.user.id,
-      title,
-      plannedDate,
-      ingredients: ingredients || []
+      name,
+      day,
+      slot,
+      date,
+      ingredients: ingredients || [],
+      notes,
+      reminderEnabled
     });
 
     const savedPlan = await newPlan.save();
+
+    // Decrement food inventory quantities
+    if (ingredients && ingredients.length > 0) {
+      for (const ing of ingredients) {
+        if (ing.itemId && ing.quantity > 0) {
+          const updatedItem = await FoodItem.findByIdAndUpdate(
+            ing.itemId,
+            { $inc: { quantity: -ing.quantity } },
+            { returnDocument: 'after' }
+          );
+          
+          // Optionally mark as used if quantity is <= 0
+          if (updatedItem && updatedItem.quantity <= 0) {
+            updatedItem.status = 'used';
+            await updatedItem.save();
+          }
+        }
+      }
+    }
+
     res.status(201).json({ success: true, data: savedPlan });
   } catch (error) {
     console.error('[MealPlanController.createMealPlan] Error:', error);
@@ -53,13 +76,15 @@ const updateMealPlan = async (req, res) => {
     plan = await MealPlan.findByIdAndUpdate(
       req.params.id,
       { $set: req.body },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
-    // If marked as completed, update ingredients to 'used'
-    if (req.body.completed === true) {
+    // If marked as completed, we used to update ingredients to 'used' here,
+    // but now quantities are deducted on creation, so we might just leave this.
+    // If we wanted, we could mark them as 'used' if we hadn't already.
+    if (req.body.completed === true && plan.ingredients) {
       await FoodItem.updateMany(
-        { _id: { $in: plan.ingredients } },
+        { _id: { $in: plan.ingredients.map(i => i.itemId) } },
         { $set: { status: 'used' } }
       );
     }
