@@ -8,7 +8,6 @@ import { MealPlannerService } from '../../services/meal-planner';
 import { InventoryService, InventoryItem } from '../../services/inventory.service';
 import { Router, ActivatedRoute } from '@angular/router';
 
-
 @Component({
    selector: 'app-food-inventory-page',
    standalone: true,
@@ -17,7 +16,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 })
 export class FoodInventoryPageComponent implements OnInit {
    items: InventoryItem[] = [];
-
    filteredItems: InventoryItem[] = [];
 
    // Summary counts
@@ -50,9 +48,9 @@ export class FoodInventoryPageComponent implements OnInit {
    isEditMode = false;
    editingItemId: string | null = null;
 
-   today = new Date(); // Will be synced from service in ngOnInit
-
+   today = new Date();
    showToast = signal(false);
+   isLoading = false;
 
    triggerToast() {
       this.showToast.set(true);
@@ -82,26 +80,34 @@ export class FoodInventoryPageComponent implements OnInit {
    }
 
    ngOnInit() {
-      this.inventoryService.refreshStatuses();
-      this.today = this.inventoryService.today;
-      this.items = [...this.inventoryService.items()];
-      this.calculateSummary();
-      this.applyFilters();
+      this.loadAllInventory();
 
       this.route.queryParams.subscribe(params => {
          if (params['action'] === 'donate' && params['itemId']) {
-            const itemToDonate = this.items.find(i => i.id === params['itemId']);
-            if (itemToDonate) {
-               this.openDonateModal(itemToDonate);
-            }
+            this.inventoryService.loadItems().subscribe(() => {
+               const itemToDonate = this.inventoryService.items().find(i => i.id === params['itemId']);
+               if (itemToDonate) {
+                  this.openDonateModal(itemToDonate);
+               }
+            });
          }
       });
    }
 
-   updateItemStatuses() {
-      this.inventoryService.refreshStatuses();
-      this.items = [...this.inventoryService.items()];
-      this.calculateSummary();
+   loadAllInventory() {
+      this.isLoading = true;
+      this.inventoryService.loadItems().subscribe({
+         next: () => {
+            this.isLoading = false;
+            this.today = this.inventoryService.today;
+            this.items = [...this.inventoryService.items()];
+            this.calculateSummary();
+            this.applyFilters();
+         },
+         error: () => {
+            this.isLoading = false;
+         }
+      });
    }
 
    calculateSummary() {
@@ -156,74 +162,77 @@ export class FoodInventoryPageComponent implements OnInit {
    saveNewItem() {
       if (this.addForm.invalid) return;
       const val = this.addForm.value;
+      this.isLoading = true;
       
       if (this.isEditMode && this.editingItemId) {
-         const itemIndex = this.items.findIndex(i => i.id === this.editingItemId);
-         if (itemIndex > -1) {
-            this.items[itemIndex] = {
-               ...this.items[itemIndex],
-               name: val.name,
-               category: val.category,
-               location: val.location,
-               quantity: val.quantity,
-               expiryDate: val.expiryDate,
-               note: val.note || '-'
-            };
-         }
+         this.inventoryService.updateItem(this.editingItemId, val).subscribe({
+            next: () => {
+               this.isLoading = false;
+               this.items = [...this.inventoryService.items()];
+               this.calculateSummary();
+               this.applyFilters();
+               this.closeAddModal();
+               this.triggerToast();
+            },
+            error: () => this.isLoading = false
+         });
       } else {
-         const newItem: InventoryItem = {
-            id: Math.random().toString(),
-            name: val.name,
-            category: val.category,
-            location: val.location,
-            quantity: val.quantity,
-            expiryDate: val.expiryDate,
-            note: val.note || '-',
-            status: ''
-         };
-         this.items.push(newItem);
-      }
-      this.inventoryService.updateItems(this.items);
-      this.updateItemStatuses();
-      this.applyFilters();
-      this.closeAddModal();
-      
-      if (this.isEditMode) {
-         this.triggerToast();
+         this.inventoryService.addItem(val).subscribe({
+            next: () => {
+               this.isLoading = false;
+               this.items = [...this.inventoryService.items()];
+               this.calculateSummary();
+               this.applyFilters();
+               this.closeAddModal();
+               this.triggerToast();
+            },
+            error: (err) => {
+               this.isLoading = false;
+               alert('Error adding food item: ' + (err.error?.message || 'Server error'));
+            }
+         });
       }
    }
 
    // Mark as Used Logic
    markAsUsed(item: InventoryItem) {
-      item.isUsed = true;
-      this.inventoryService.updateItems(this.items);
+      this.inventoryService.updateItem(item.id, { isUsed: true }).subscribe(() => {
+         this.items = [...this.inventoryService.items()];
+         this.calculateSummary();
+         this.applyFilters();
+      });
    }
 
    undoMarkAsUsed(item: InventoryItem) {
-      item.isUsed = false;
-      this.inventoryService.updateItems(this.items);
+      this.inventoryService.updateItem(item.id, { isUsed: false }).subscribe(() => {
+         this.items = [...this.inventoryService.items()];
+         this.calculateSummary();
+         this.applyFilters();
+      });
    }
 
    // Plan for Meal Logic
    planForMeal(item: InventoryItem) {
-      item.isPlanned = true;
-      this.inventoryService.updateItems(this.items);
-      
-      // Sync item with meal planner inventory
-      this.mealPlannerService.syncInventoryItem(item);
-      
-      // Add it as a reserved ingredient for a new meal plan
-      this.mealPlannerService.addPlan({
-         name: 'Meal with ' + item.name,
-         day: 'Mon',
-         slot: 'Dinner',
-         date: '2026-04-20',
-         ingredients: [{ itemId: item.id, itemName: item.name, quantity: 1 }],
-         reminderEnabled: false
+      this.inventoryService.updateItem(item.id, { status: 'Planned' }).subscribe(() => {
+         this.items = [...this.inventoryService.items()];
+         this.calculateSummary();
+         this.applyFilters();
+         
+         // Sync item with meal planner inventory
+         this.mealPlannerService.syncInventoryItem(item);
+         
+         // Add it as a reserved ingredient for a new meal plan
+         this.mealPlannerService.addPlan({
+            name: 'Meal with ' + item.name,
+            day: 'Mon',
+            slot: 'Dinner',
+            date: '2026-04-20',
+            ingredients: [{ itemId: item.id, itemName: item.name, quantity: 1 }],
+            reminderEnabled: false
+         });
+         
+         this.router.navigate(['/meal-planner']);
       });
-      
-      // Navigate to meal planner page
-      this.router.navigate(['/meal-planner']);
    }
 
    // Donate Logic
@@ -241,11 +250,19 @@ export class FoodInventoryPageComponent implements OnInit {
    confirmDonation() {
       if (this.donateForm.invalid || !this.itemToDonate) return;
 
-      this.itemToDonate.status = 'Donated';
-      this.inventoryService.updateItems(this.items);
-      this.calculateSummary();
-      this.applyFilters();
-      this.closeDonateModal();
+      const noteText = this.donateForm.get('note')?.value || '';
+      const pickup = this.donateForm.get('pickupAvailability')?.value || '';
+      const fullNote = `Pickup: ${pickup}; Note: ${noteText}`;
+
+      this.inventoryService.updateItem(this.itemToDonate.id, { 
+         status: 'Donated',
+         note: fullNote
+      }).subscribe(() => {
+         this.items = [...this.inventoryService.items()];
+         this.calculateSummary();
+         this.applyFilters();
+         this.closeDonateModal();
+      });
    }
 
    // Delete Logic
@@ -261,11 +278,12 @@ export class FoodInventoryPageComponent implements OnInit {
 
    confirmDelete() {
       if (!this.itemToDelete) return;
-      this.items = this.items.filter(i => i.id !== this.itemToDelete!.id);
-      this.inventoryService.updateItems(this.items);
-      this.updateItemStatuses();
-      this.applyFilters();
-      this.closeDeleteModal();
+      this.inventoryService.removeItem(this.itemToDelete.id).subscribe(() => {
+         this.items = [...this.inventoryService.items()];
+         this.calculateSummary();
+         this.applyFilters();
+         this.closeDeleteModal();
+      });
    }
 
    getStatusClass(status: string) {

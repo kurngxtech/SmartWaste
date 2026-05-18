@@ -41,7 +41,7 @@ export class NotificationsPage {
       if (action === 'plan') {
          const item = this.inventoryService.getItemById(targetNotif.id);
          if (item && !item.isPlanned) {
-            this.inventoryService.planItem(item.id);
+            this.inventoryService.updateItem(item.id, { status: 'Planned' }).subscribe();
             this.mealPlannerService.syncInventoryItem(item);
             this.mealPlannerService.addPlan({
                name: 'Meal with ' + item.name,
@@ -60,14 +60,13 @@ export class NotificationsPage {
       } else if (action === 'view_inventory') {
          this.router.navigate(['/inventory']);
       } else if (action === 'remove') {
-         this.inventoryService.removeItem(targetNotif.id);
+         this.inventoryService.removeItem(targetNotif.id).subscribe();
       } else if (action === 'dismiss') {
          if (targetNotif.id.startsWith('claimed-')) {
             const actualId = targetNotif.id.replace('claimed-', '');
             const item = this.inventoryService.getItemById(actualId);
             if (item) {
-               item.isClaimed = false;
-               this.inventoryService.updateItem(item);
+               this.inventoryService.updateItem(item.id, { status: 'Good' }).subscribe();
             }
          }
       }

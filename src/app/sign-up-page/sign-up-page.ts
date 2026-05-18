@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../authentication/auth.service';
+
 @Component({
    selector: 'app-sign-up-page',
    standalone: true,
@@ -15,6 +16,8 @@ export class SignUpPageComponent {
    isVerificationMode = false;
    notGoogleEmailError = false;
    verificationError = false;
+   serverError = '';
+   isLoading = false;
 
    constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
       this.signUpForm = this.fb.group({
@@ -30,24 +33,31 @@ export class SignUpPageComponent {
       });
    }
 
-   // Getter to simplify accessing form controls in the template
    get f() { return this.signUpForm.controls; }
    get v() { return this.verificationForm.controls; }
 
    onSubmit(): void {
       if (this.signUpForm.valid) {
          this.notGoogleEmailError = false;
-         
-         // Try to send verification email (fails if not a google email)
-         const isGoogleEmail = this.authService.sendVerificationEmail(this.signUpForm.value);
-         
-         if (isGoogleEmail) {
-            this.isVerificationMode = true;
-         } else {
-            this.notGoogleEmailError = true;
-         }
+         this.serverError = '';
+         this.isLoading = true;
+
+         this.authService.register(this.signUpForm.value).subscribe({
+            next: (res) => {
+               this.isLoading = false;
+               if (res.success) {
+                  this.isVerificationMode = true;
+               }
+            },
+            error: (err) => {
+               this.isLoading = false;
+               this.serverError = err.error?.message || 'Server error during registration';
+               if (this.serverError.includes('already registered')) {
+                  this.notGoogleEmailError = true; // Use this flag to show generic error if needed
+               }
+            }
+         });
       } else {
-         // Mark all as touched to show errors if user clicks submit prematurely
          this.signUpForm.markAllAsTouched();
       }
    }
@@ -55,16 +65,25 @@ export class SignUpPageComponent {
    onVerify(): void {
       if (this.verificationForm.valid) {
          this.verificationError = false;
+         this.serverError = '';
+         this.isLoading = true;
+
          const email = this.signUpForm.get('email')?.value;
          const code = this.verificationForm.get('code')?.value;
 
-         const isValid = this.authService.verifyCodeAndRegister(email, code);
-         
-         if (isValid) {
-            this.router.navigate(['/login']);
-         } else {
-            this.verificationError = true;
-         }
+         this.authService.verifyEmail(email, code).subscribe({
+            next: (res) => {
+               this.isLoading = false;
+               if (res.success) {
+                  this.router.navigate(['/login']);
+               }
+            },
+            error: (err) => {
+               this.isLoading = false;
+               this.verificationError = true;
+               this.serverError = err.error?.message || 'Invalid code';
+            }
+         });
       } else {
          this.verificationForm.markAllAsTouched();
       }
@@ -75,5 +94,6 @@ export class SignUpPageComponent {
       this.verificationForm.reset();
       this.verificationError = false;
       this.notGoogleEmailError = false;
+      this.serverError = '';
    }
 }

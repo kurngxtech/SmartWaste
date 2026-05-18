@@ -104,7 +104,6 @@ export class DonationHubPage implements OnInit {
       item.status = 'Claimed';
 
       this.inventoryService.addItem({
-         id: 'claimed-' + item.id,
          name: item.name,
          category: item.category,
          quantity: 1,
@@ -113,7 +112,7 @@ export class DonationHubPage implements OnInit {
          status: 'Good',
          note: `Claimed from ${item.postedBy}`,
          isClaimed: true
-      });
+      }).subscribe();
 
       this.showToast(`Successfully claimed ${item.name}! Added to your inventory.`, 'success');
    }
@@ -121,8 +120,7 @@ export class DonationHubPage implements OnInit {
    cancelDonation(item: DonationItem) {
       const invItem = this.inventoryService.getItemById(item.id);
       if (invItem) {
-         invItem.status = 'Good';
-         this.inventoryService.updateItem(invItem);
+         this.inventoryService.updateItem(invItem.id, { status: 'Good' }).subscribe();
       }
       this.donations = this.donations.filter(d => d.id !== item.id);
       this.applyFilters();

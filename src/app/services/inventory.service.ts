@@ -1,7 +1,11 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface InventoryItem {
    id: string;
+   _id?: string;
    name: string;
    category: string;
    quantity: number;
@@ -13,33 +17,86 @@ export interface InventoryItem {
    isUsed?: boolean;
    isPlanned?: boolean;
    isClaimed?: boolean;
+   unit?: string;
 }
 
 @Injectable({
    providedIn: 'root'
 })
 export class InventoryService {
-   private _items = signal<InventoryItem[]>([
-      { id: '1', name: 'Spinach', category: 'Vegetable', quantity: 2, expiryDate: '2026-05-20', location: 'Fridge', status: '', note: 'Organic' },
-      { id: '2', name: 'Milk', category: 'Dairy', quantity: 1, expiryDate: '2026-05-18', location: 'Fridge', status: '', note: '-' },
-      { id: '3', name: 'Rice', category: 'Grain', quantity: 5, expiryDate: '2026-12-01', location: 'Pantry', status: '', note: 'Jasmine rice' },
-      { id: '4', name: 'Chicken Breast', category: 'Meat', quantity: 3, expiryDate: '2026-05-25', location: 'Freezer', status: '', note: '-' },
-      { id: '5', name: 'Apple', category: 'Fruit', quantity: 6, expiryDate: '2026-05-15', location: 'Fridge', status: '', note: '-' },
-      { id: '6', name: 'Pork Belly', category: 'Meat', quantity: 1, expiryDate: '2026-05-19', location: 'Freezer', status: '', note: '-' }
-   ]);
-
+   private http = inject(HttpClient);
+   private _items = signal<InventoryItem[]>([]);
+   
    today = new Date();
-
    readonly items = this._items.asReadonly();
 
-   constructor() {
-      this.refreshStatuses();
+   constructor() { }
+
+   // Clear local cache (for logout/account reset)
+   clearLocalItems() {
+      this._items.set([]);
    }
 
+   // 1. Fetch all items from backend
+   loadItems(): Observable<any> {
+      return this.http.get<any>(`${environment.apiUrl}/inventory`).pipe(
+         tap((res: any) => {
+            if (res.success) {
+               const mapped = res.data.map((item: any) => this.mapToFrontend(item));
+               this._items.set(mapped);
+               this.refreshStatuses();
+            }
+         })
+      );
+   }
+
+   // 2. Add food item
+   addItem(itemData: any): Observable<any> {
+      const payload = this.mapToBackend(itemData);
+      return this.http.post<any>(`${environment.apiUrl}/inventory`, payload).pipe(
+         tap((res: any) => {
+            if (res.success) {
+               const newItem = this.mapToFrontend(res.data);
+               this._items.update(items => [...items, newItem]);
+               this.refreshStatuses();
+            }
+         })
+      );
+   }
+
+   // 3. Update food item
+   updateItem(id: string, updates: any): Observable<any> {
+      // If we are passing partial frontend updates, map them to backend schema
+      const payload = this.mapToBackend(updates);
+      return this.http.put<any>(`${environment.apiUrl}/inventory/${id}`, payload).pipe(
+         tap((res: any) => {
+            if (res.success) {
+               const updated = this.mapToFrontend(res.data);
+               this._items.update(items => items.map(i => i.id === id ? updated : i));
+               this.refreshStatuses();
+            }
+         })
+      );
+   }
+
+   // 4. Delete food item
+   removeItem(id: string): Observable<any> {
+      return this.http.delete<any>(`${environment.apiUrl}/inventory/${id}`).pipe(
+         tap((res: any) => {
+            if (res.success) {
+               this._items.update(items => items.filter(i => i.id !== id));
+               this.refreshStatuses();
+            }
+         })
+      );
+   }
+
+   // Helper: Refresh front-end calculated daysLeft and statuses
    refreshStatuses() {
       this._items.update(items => {
          return items.map(item => {
-            if (item.status === 'Donated' || item.status === 'Planned') return item;
+            // Respect terminal status
+            if (item.status === 'Donated' || item.status === 'Planned' || item.status === 'Used') return item;
 
             const expDate = new Date(item.expiryDate);
             const diffTime = expDate.getTime() - this.today.getTime();
@@ -57,6 +114,82 @@ export class InventoryService {
             return item;
          });
       });
+   }
+
+   // Deserializer: Mongoose to Front-end model
+   private mapToFrontend(backendItem: any): InventoryItem {
+      let frontendStatus = 'Good';
+      if (backendItem.status === 'expired') frontendStatus = 'Expired';
+      else if (backendItem.status === 'expiring') frontendStatus = 'Expiring soon';
+      else if (backendItem.status === 'donated' || backendItem.status === 'donating') frontendStatus = 'Donated';
+      else if (backendItem.status === 'used') frontendStatus = 'Used';
+      else if (backendItem.status === 'claimed') frontendStatus = 'Planned';
+
+      // Parse location and note from the backend notes string
+      let location = 'Fridge';
+      let note = '-';
+      if (backendItem.notes && backendItem.notes.includes('Location:')) {
+         const parts = backendItem.notes.split(';');
+         const locPart = parts[0]?.split('Location:')[1];
+         const notePart = parts[1]?.split('Note:')[1];
+         if (locPart) location = locPart.trim();
+         if (notePart) note = notePart.trim();
+      } else if (backendItem.notes) {
+         note = backendItem.notes;
+      }
+
+      return {
+         id: backendItem._id,
+         name: backendItem.name,
+         category: backendItem.category,
+         quantity: backendItem.quantity,
+         expiryDate: backendItem.expiryDate ? backendItem.expiryDate.split('T')[0] : '',
+         location: location,
+         status: frontendStatus,
+         note: note,
+         isUsed: backendItem.status === 'used',
+         isPlanned: backendItem.status === 'claimed' || backendItem.status === 'Planned',
+         unit: backendItem.unit || 'units'
+      };
+   }
+
+   // Serializer: Front-end model to Mongoose
+   private mapToBackend(frontendItem: any) {
+      const payload: any = {};
+
+      if (frontendItem.name) payload.name = frontendItem.name;
+      if (frontendItem.category) payload.category = frontendItem.category;
+      if (frontendItem.quantity != null) payload.quantity = frontendItem.quantity;
+      payload.unit = frontendItem.unit || 'units';
+      if (frontendItem.expiryDate) payload.expiryDate = new Date(frontendItem.expiryDate).toISOString();
+      
+      // Map status
+      if (frontendItem.status) {
+         if (frontendItem.status === 'Expired') payload.status = 'expired';
+         else if (frontendItem.status === 'Expiring soon') payload.status = 'expiring';
+         else if (frontendItem.status === 'Donated') payload.status = 'donated';
+         else if (frontendItem.status === 'Planned') payload.status = 'claimed';
+         else if (frontendItem.status === 'Used') payload.status = 'used';
+         else if (frontendItem.status === 'Good') payload.status = 'available';
+      }
+
+      if (frontendItem.isUsed !== undefined) {
+         payload.status = frontendItem.isUsed ? 'used' : 'available';
+      }
+
+      // Encode location and note
+      if (frontendItem.location || frontendItem.note) {
+         const loc = frontendItem.location || 'Fridge';
+         const noteText = frontendItem.note || '-';
+         payload.notes = `Location: ${loc}; Note: ${noteText}`;
+      }
+
+      return payload;
+   }
+
+   // For components that still need standard read utilities
+   getItemById(id: string): InventoryItem | undefined {
+      return this._items().find(i => i.id === id);
    }
 
    getNotifications() {
@@ -96,34 +229,5 @@ export class InventoryService {
                ? `${item.name} expired on ${item.expiryDate}` 
                : `${item.name} expires in ${item.daysLeft} days`
          }));
-   }
-
-   updateItems(newItems: InventoryItem[]) {
-      this._items.set(newItems);
-   }
-
-   updateItem(updatedItem: InventoryItem) {
-      this._items.update(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
-   }
-
-   addItem(item: InventoryItem) {
-      this._items.update(items => [...items, item]);
-   }
-
-   removeItem(id: string) {
-      this._items.update(items => items.filter(i => i.id !== id));
-   }
-
-   getItemById(id: string): InventoryItem | undefined {
-      return this._items().find(i => i.id === id);
-   }
-
-   planItem(id: string) {
-      this._items.update(items => items.map(item => {
-         if (item.id === id) {
-            return { ...item, isPlanned: true, status: 'Planned' };
-         }
-         return item;
-      }));
    }
 }

@@ -1,61 +1,68 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { UserSettingsService } from '../services/user-settings.service';
 
 @Injectable({
    providedIn: 'root'
 })
 export class AuthService {
-   // Initialized with the dummy account for testing Iteration 1
-   private users: any[] = [
-      {
-         fullName: 'Dummy User',
-         email: 'dummyaccount@gmail.com',
-         password: 'dummy1234!',
-         householdSize: 2,
-         phone: '+60 12-345-6789'
-      }
-   ];
-   private pendingRegistrations: Map<string, { user: any, code: string }> = new Map();
+   private http = inject(HttpClient);
+   private userSettingsService = inject(UserSettingsService);
 
    constructor() { }
 
-   sendVerificationEmail(user: any): boolean {
-      if (!user.email.toLowerCase().endsWith('@gmail.com')) {
-         return false;
-      }
-
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      this.pendingRegistrations.set(user.email, { user, code });
-
-      console.log(`[SYSTEM] ------------------------------------------------`);
-      console.log(`[SYSTEM] Simulated Email Sent to: ${user.email}`);
-      console.log(`[SYSTEM] Subject: Welcome to SavePlate! Verification Code`);
-      console.log(`[SYSTEM] Message: Hello ${user.fullName}, your 6-digit verification code is: ${code}`);
-      console.log(`[SYSTEM] ------------------------------------------------`);
-
-      return true;
+   // Register (sends verification email)
+   register(userData: any): Observable<any> {
+      // API expects name instead of fullName, so we map it here
+      const payload = {
+         name: userData.fullName,
+         email: userData.email,
+         password: userData.password,
+         householdSize: userData.householdSize,
+         phone: userData.phone
+      };
+      return this.http.post(`${environment.apiUrl}/auth/register`, payload);
    }
 
-   verifyCodeAndRegister(email: string, code: string): boolean {
-      const pending = this.pendingRegistrations.get(email);
-      if (pending && pending.code === code) {
-         this.users.push(pending.user);
-         this.pendingRegistrations.delete(email);
-         console.log('User registered successfully:', pending.user);
-         return true;
-      }
-      return false;
+   // Verify code
+   verifyEmail(email: string, code: string): Observable<any> {
+      return this.http.post(`${environment.apiUrl}/auth/verify-email`, { email, code });
    }
 
-   register(user: any): void {
-      this.users.push(user);
-      console.log('User registered:', user);
+   // Login
+   login(credentials: any): Observable<any> {
+      return this.http.post(`${environment.apiUrl}/auth/login`, credentials).pipe(
+         tap((response: any) => {
+            if (response.success) {
+               // Store tokens
+               localStorage.setItem('accessToken', response.accessToken);
+               localStorage.setItem('refreshToken', response.refreshToken);
+               // Store user data
+               localStorage.setItem('user', JSON.stringify(response.user));
+               
+               // Update the user settings service state
+               this.userSettingsService.updateProfile({ 
+                  name: response.user.name, 
+                  email: response.user.email, 
+                  householdSize: response.user.householdSize || 2, 
+                  phone: response.user.phone || '' 
+               });
+            }
+         })
+      );
    }
 
-   checkEmailExists(email: string): boolean {
-      return this.users.some(u => u.email.toLowerCase() === email.toLowerCase());
-   }
-
-   getUserByEmail(email: string): any {
-      return this.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+   // Logout
+   logout(): Observable<any> {
+      const refreshToken = localStorage.getItem('refreshToken');
+      return this.http.post(`${environment.apiUrl}/auth/logout`, { refreshToken }).pipe(
+         tap(() => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+         })
+      );
    }
 }

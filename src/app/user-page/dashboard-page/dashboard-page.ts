@@ -28,8 +28,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       return this.alerts().filter(a => a.type === 'danger' || a.type === 'warning').length;
    }
 
-   totalFoodSavedKG: number = 0;
-   totalDonationsKG: number = 0;
+   totalFoodSavedItems: number = 0;
+   totalDonationsItems: number = 0;
 
    // Filters
    dateRangeOptions = [6, 3, 1]; // Months
@@ -44,8 +44,13 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    ) { }
 
    ngOnInit() {
-      this.totalFoodSavedKG = this.analyticsService.getTotalFoodSavedKG();
-      this.totalDonationsKG = this.analyticsService.getTotalDonationsKG();
+      // Dynamically fetch actual data from database
+      this.analyticsService.fetchSummary().subscribe(() => {
+         const data = this.analyticsService.summary();
+         this.totalFoodSavedItems = data.totalUsed;
+         this.totalDonationsItems = data.totalDonated;
+      });
+      
       this.chartData = this.analyticsService.getMonthlyImpactChart(this.selectedRange, this.selectedCategory);
    }
 

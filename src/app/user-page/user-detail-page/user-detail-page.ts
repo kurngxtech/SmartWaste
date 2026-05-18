@@ -50,7 +50,7 @@ export class UserDetailPage {
    }
 
    confirmDelete() {
-      this.inventoryService.updateItems([]);
+      this.inventoryService.clearLocalItems();
       this.mealPlannerService.clearPlans();
       this.settingsService.resetSettings();
       
