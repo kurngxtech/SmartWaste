@@ -253,7 +253,7 @@ const confirmClaimRequest = async (req, res) => {
           completedAt: new Date()
         }
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!updatedItem) {

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { UserSettingsService } from '../services/user-settings.service';
+import { MealPlannerService } from '../services/meal-planner';
 
 @Injectable({
    providedIn: 'root'
@@ -10,12 +11,12 @@ import { UserSettingsService } from '../services/user-settings.service';
 export class AuthService {
    private http = inject(HttpClient);
    private userSettingsService = inject(UserSettingsService);
+   private mealPlannerService = inject(MealPlannerService);
 
    constructor() { }
 
-   // Register (sends verification email)
+   // Register (sends verification OTP email)
    register(userData: any): Observable<any> {
-      // API expects name instead of fullName, so we map it here
       const payload = {
          name: userData.fullName,
          email: userData.email,
@@ -26,9 +27,14 @@ export class AuthService {
       return this.http.post(`${environment.apiUrl}/auth/register`, payload);
    }
 
-   // Verify code
+   // Verify signup OTP code
    verifyEmail(email: string, code: string): Observable<any> {
       return this.http.post(`${environment.apiUrl}/auth/verify-email`, { email, code });
+   }
+
+   // Resend signup OTP (recovery path when email delivery failed)
+   resendVerification(email: string): Observable<any> {
+      return this.http.post(`${environment.apiUrl}/auth/resend-verification`, { email });
    }
 
    // Login — may return requiresTwoFactor if 2FA is enabled
@@ -38,13 +44,13 @@ export class AuthService {
             if (response.success && !response.requiresTwoFactor) {
                this._storeSession(response);
             }
-            // If requiresTwoFactor is true, we don't store tokens yet —
+            // If requiresTwoFactor is true, tokens are NOT stored yet —
             // the user must complete 2FA verification first.
          })
       );
    }
 
-   // Verify 2FA code after login
+   // Verify 2FA OTP after login
    verify2FA(email: string, code: string): Observable<any> {
       return this.http.post(`${environment.apiUrl}/auth/verify-2fa`, { email, code }).pipe(
          tap((response: any) => {
@@ -60,12 +66,22 @@ export class AuthService {
       return this.http.post(`${environment.apiUrl}/auth/toggle-2fa`, { enabled });
    }
 
+   // Request a password reset email
+   forgotPassword(email: string): Observable<any> {
+      return this.http.post(`${environment.apiUrl}/auth/forgot-password`, { email });
+   }
+
+   // Submit new password using the token from the reset link
+   resetPassword(token: string, email: string, newPassword: string): Observable<any> {
+      return this.http.post(`${environment.apiUrl}/auth/reset-password`, { token, email, newPassword });
+   }
+
    // Store session data (tokens + user profile)
    private _storeSession(response: any) {
       localStorage.setItem('accessToken', response.accessToken);
       localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
-      
+
       // Optimistically update the user settings profile from the login response
       this.userSettingsService.profile.update(p => ({
          ...p,
@@ -78,6 +94,10 @@ export class AuthService {
 
       // Fetch full settings and preferences from backend
       this.userSettingsService.loadFromBackend();
+
+      // Reload meal plans scoped to the newly logged-in user
+      // (prevents stale plans from a previous session showing up)
+      this.mealPlannerService.loadPlans();
    }
 
    // Logout
@@ -89,6 +109,9 @@ export class AuthService {
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
             localStorage.removeItem('userPreferences');
+
+            // Clear per-user in-memory state to prevent cross-user data leakage
+            this.mealPlannerService.clearPlans();
          })
       );
    }

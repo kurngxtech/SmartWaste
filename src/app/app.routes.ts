@@ -8,11 +8,15 @@ import { DonationHubPage } from './user-page/donation-hub-page/donation-hub-page
 import { NotificationsPage } from './user-page/notifications-page/notifications-page';
 import { AppSettingsPage } from './user-page/app-settings-page/app-settings-page';
 import { UserDetailPage } from './user-page/user-detail-page/user-detail-page';
+import { ForgotPasswordComponent } from './forgot-password/forgot-password';
+import { ResetPasswordComponent } from './reset-password/reset-password';
 
 export const routes: Routes = [
    { path: '', component: LoginPage },
    { path: 'signup', component: SignUpPageComponent },
    { path: 'login', component: LoginPage },
+   { path: 'forgot-password', component: ForgotPasswordComponent },
+   { path: 'reset-password', component: ResetPasswordComponent },
    { path: 'dashboard', component: DashboardPage },
    { path: 'inventory', component: FoodInventoryPageComponent },
    { path: 'planner', component: MealPlannerPage },

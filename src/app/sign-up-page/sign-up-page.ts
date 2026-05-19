@@ -1,8 +1,18 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../authentication/auth.service';
+
+/** Custom validator: rejects email addresses that are not @gmail.com */
+function gmailOnlyValidator(control: AbstractControl): ValidationErrors | null {
+   const value: string = (control.value || '').toLowerCase().trim();
+   if (!value) return null; // Let required validator handle empty
+   if (!value.endsWith('@gmail.com')) {
+      return { gmailOnly: true };
+   }
+   return null;
+}
 
 @Component({
    selector: 'app-sign-up-page',
@@ -14,15 +24,16 @@ export class SignUpPageComponent {
    signUpForm: FormGroup;
    verificationForm: FormGroup;
    isVerificationMode = false;
-   notGoogleEmailError = false;
    verificationError = false;
    serverError = '';
    isLoading = false;
+   emailDeliveryWarning = false; // email sent but might be in spam / first-time delay
+   resendSuccess = false;        // resend OTP succeeded
 
    constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
       this.signUpForm = this.fb.group({
          fullName: ['', [Validators.required]],
-         email: ['', [Validators.required, Validators.email]],
+         email: ['', [Validators.required, Validators.email, gmailOnlyValidator]],
          phone: ['', [Validators.required]],
          password: ['', [Validators.required, Validators.minLength(6)]],
          householdSize: ['', [Validators.required, Validators.min(1)]]
@@ -37,24 +48,35 @@ export class SignUpPageComponent {
    get v() { return this.verificationForm.controls; }
 
    onSubmit(): void {
+      if (this.isLoading) return; // guard: prevent double-submit race condition
       if (this.signUpForm.valid) {
-         this.notGoogleEmailError = false;
          this.serverError = '';
+         this.emailDeliveryWarning = false;
+         this.resendSuccess = false;
          this.isLoading = true;
 
          this.authService.register(this.signUpForm.value).subscribe({
             next: (res) => {
                this.isLoading = false;
                if (res.success) {
+                  // Backend returned 201 — email was sent normally
+                  this.isVerificationMode = true;
+               } else if (res.emailError) {
+                  // 200 with emailError shouldn't happen, but guard it
+                  this.emailDeliveryWarning = true;
                   this.isVerificationMode = true;
                }
                this.cdr.detectChanges();
             },
             error: (err) => {
                this.isLoading = false;
-               this.serverError = err.error?.message || 'Server error during registration';
-               if (this.serverError.includes('already registered')) {
-                  this.notGoogleEmailError = true; // Use this flag to show generic error if needed
+               if (err.error?.emailError) {
+                  // Account created in DB but OTP email failed — go to verification
+                  // screen so the user can click Resend Code instead of redoing the form
+                  this.emailDeliveryWarning = true;
+                  this.isVerificationMode = true;
+               } else {
+                  this.serverError = err.error?.message || 'Server error during registration';
                }
                this.cdr.detectChanges();
             }
@@ -97,7 +119,32 @@ export class SignUpPageComponent {
       this.isVerificationMode = false;
       this.verificationForm.reset();
       this.verificationError = false;
-      this.notGoogleEmailError = false;
       this.serverError = '';
+      this.emailDeliveryWarning = false;
+      this.resendSuccess = false;
+   }
+
+   resendCode(): void {
+      if (this.isLoading) return;
+      const email = this.signUpForm.get('email')?.value;
+      if (!email) return;
+
+      this.isLoading = true;
+      this.resendSuccess = false;
+      this.emailDeliveryWarning = false;
+      this.serverError = '';
+
+      this.authService.resendVerification(email).subscribe({
+         next: () => {
+            this.isLoading = false;
+            this.resendSuccess = true;
+            this.cdr.detectChanges();
+         },
+         error: (err) => {
+            this.isLoading = false;
+            this.serverError = err.error?.message || 'Could not resend verification code. Please try again.';
+            this.cdr.detectChanges();
+         }
+      });
    }
 }

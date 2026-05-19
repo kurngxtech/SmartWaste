@@ -45,7 +45,9 @@ export class MealPlannerService {
    ];
    
    constructor() {
-      this.loadPlans();
+      if (typeof window !== 'undefined' && localStorage.getItem('accessToken')) {
+         this.loadPlans();
+      }
    }
 
    loadPlans(): void {

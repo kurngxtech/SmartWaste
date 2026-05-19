@@ -39,6 +39,9 @@ const userSchema = new mongoose.Schema({
   twoFactorCodeExpires: {
     type: Date,
   },
+  // Password reset (SHA-256 hashed token stored; raw token only in email)
+  passwordResetToken: { type: String },
+  passwordResetExpires: { type: Date },
   phone: { type: String, default: '+60 12-345-6789' },
   householdSize: { type: Number, default: 1 },
   avatarUrl: { type: String, default: '' },

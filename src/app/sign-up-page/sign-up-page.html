@@ -12,8 +12,8 @@
             <p class="text-green-100 opacity-80 text-sm">Create your SavePlate account</p>
          </header>
 
-         <div *ngIf="notGoogleEmailError" class="p-3 mb-6 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
-            Please use a valid Google (@gmail.com) email account.
+         <div *ngIf="serverError" class="p-3 mb-6 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
+            {{ serverError }}
          </div>
 
          <form [formGroup]="signUpForm" (ngSubmit)="onSubmit()" class="space-y-5">
@@ -36,7 +36,8 @@
                   [ngClass]="{'border-red-400 ring-1 ring-red-400': f['email'].touched && f['email'].errors}" />
                <div *ngIf="f['email'].touched && f['email'].errors" class="mt-1 ml-1 text-xs text-red-300 font-medium">
                   <span *ngIf="f['email'].errors['required']">Email is required.</span>
-                  <span *ngIf="f['email'].errors['email']">Please enter a valid email.</span>
+                  <span *ngIf="f['email'].errors['email']">Please enter a valid email address.</span>
+                  <span *ngIf="f['email'].errors['gmailOnly']">Only @gmail.com addresses are accepted.</span>
                </div>
             </div>
 
@@ -74,9 +75,10 @@
                </div>
             </div>
 
-            <button type="submit" [disabled]="signUpForm.invalid"
+            <button type="submit" [disabled]="signUpForm.invalid || isLoading"
                class="btn-primary w-full py-4 text-lg mt-2">
-               Sign Up
+               <span *ngIf="isLoading">Creating account...</span>
+               <span *ngIf="!isLoading">Sign Up</span>
             </button>
 
          </form>
@@ -97,6 +99,21 @@
             <p class="text-green-100 opacity-80 text-sm">We've sent a 6-digit code to <span class="font-bold">{{ f['email'].value }}</span></p>
          </header>
 
+         <!-- Email delivery warning (SMTP failed but user is in DB as unverified) -->
+         <div *ngIf="emailDeliveryWarning" class="p-3 mb-4 text-sm text-amber-200 bg-amber-900/40 border border-amber-500 rounded-lg text-center">
+            ⚠️ We couldn't deliver the verification email. Click <strong>Resend Code</strong> below to try again.
+         </div>
+
+         <!-- Resend success -->
+         <div *ngIf="resendSuccess" class="p-3 mb-4 text-sm text-green-200 bg-green-900/40 border border-green-400 rounded-lg text-center">
+            ✅ A new code has been sent! Please check your inbox (and Spam folder).
+         </div>
+
+         <!-- Server error on verify screen -->
+         <div *ngIf="serverError" class="p-3 mb-4 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
+            {{ serverError }}
+         </div>
+
          <div *ngIf="verificationError" class="p-3 mb-6 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
             Invalid verification code. Please try again.
          </div>
@@ -114,11 +131,20 @@
                </div>
             </div>
 
-            <button type="submit" [disabled]="verificationForm.invalid"
+            <button type="submit" [disabled]="verificationForm.invalid || isLoading"
                class="btn-primary w-full py-4 text-lg mt-2">
-               Verify Account
+               <span *ngIf="isLoading">Verifying...</span>
+               <span *ngIf="!isLoading">Verify Account</span>
             </button>
          </form>
+
+         <div class="mt-4 text-center">
+            <button type="button" (click)="resendCode()" [disabled]="isLoading"
+               class="text-sm font-semibold text-green-200 hover:text-white hover:underline underline-offset-4 cursor-pointer focus:outline-none transition-colors disabled:opacity-50">
+               <span *ngIf="isLoading">Sending...</span>
+               <span *ngIf="!isLoading">Didn't receive a code? Resend Code</span>
+            </button>
+         </div>
 
          <footer class="mt-8 text-center">
             <button type="button" (click)="goBackToSignUp()" class="text-sm font-semibold text-green-100 hover:text-white hover:underline underline-offset-4 cursor-pointer focus:outline-none transition-colors">
