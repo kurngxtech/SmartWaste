@@ -25,7 +25,7 @@ const getAnalyticsSummary = async (req, res) => {
       } else if (item.status === 'wasted' || item.status === 'expired') {
         wastedCount++;
         totalTracked++;
-      } else if (item.status === 'donated' || item.status === 'claimed') {
+      } else if (item.status === 'donated' || item.status === 'claimed' || item.status === 'completed') {
         donatedCount++;
         totalTracked++;
       }

@@ -13,13 +13,16 @@ const claimRequestSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'rejected'],
+    enum: ['pending', 'confirmed', 'rejected', 'cancelled'],
     default: 'pending',
   },
   message: {
     type: String,
     trim: true,
     default: '',
+  },
+  completedAt: {
+    type: Date,
   }
 }, { timestamps: true });
 

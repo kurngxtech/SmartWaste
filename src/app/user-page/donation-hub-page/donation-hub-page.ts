@@ -33,6 +33,7 @@ export interface DonationItem {
    isOwner: boolean;
    claimRequestCount: number;
    ownerUserId: string;
+   hasRequested: boolean;
 }
 
 @Component({
@@ -74,6 +75,9 @@ export class DonationHubPage implements OnInit {
    // Current user ID for ownership check
    currentUserId = '';
 
+   // Claim request loading guard — prevents double-click race conditions
+   claimingItemId: string | null = null;
+
    constructor(
       @Inject(PLATFORM_ID) private platformId: Object
    ) {}
@@ -102,7 +106,7 @@ export class DonationHubPage implements OnInit {
 
    /**
     * Fetch ALL donated items from the backend API (cross-user).
-    * This replaces the old approach of reading from local inventory signal.
+    * Backend returns hasRequested per-user flag for toggle behavior.
     */
    loadDonationsFromBackend() {
       this.isLoading = true;
@@ -134,7 +138,8 @@ export class DonationHubPage implements OnInit {
                      phoneNumber: item.contactPhone || item.userId?.phone || 'Contact via app',
                      isOwner: ownerUserId === this.currentUserId,
                      claimRequestCount: item.claimRequestCount || 0,
-                     ownerUserId: ownerUserId
+                     ownerUserId: ownerUserId,
+                     hasRequested: !!item.hasRequested
                   };
                });
                this.filteredDonations = [...this.donations];
@@ -176,21 +181,102 @@ export class DonationHubPage implements OnInit {
    }
 
    /**
+    * Toggle claim request: submit or cancel based on current state.
+    * Guarded by claimingItemId to prevent double-click race conditions.
+    */
+   toggleClaimRequest(item: DonationItem) {
+      if (item.status === 'Claimed' || item.isOwner) return;
+
+      // Prevent double-click: if already processing this item, ignore
+      if (this.claimingItemId === item.id) return;
+
+      if (item.hasRequested) {
+         this.cancelClaimRequest(item);
+      } else {
+         this.requestClaim(item);
+      }
+   }
+
+   /**
     * Request to claim a donation (for non-owners).
+    * Uses optimistic UI update with rollback on error.
     */
    requestClaim(item: DonationItem) {
       if (item.status === 'Claimed' || item.isOwner) return;
 
+      // Set loading guard
+      this.claimingItemId = item.id;
+
+      // Optimistic UI update — instant button toggle
+      item.hasRequested = true;
+      item.claimRequestCount++;
+      this.cdr.detectChanges();
+
       this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/request`, {}).subscribe({
          next: (res) => {
+            this.claimingItemId = null;
             if (res.success) {
-               item.claimRequestCount++;
+               // State already updated optimistically — just show toast
                this.showToast(`Claim request submitted for ${item.name}! The donor will review your request.`, 'success');
+            } else {
+               // Rollback optimistic update on unexpected non-success
+               item.hasRequested = false;
+               item.claimRequestCount = Math.max(0, item.claimRequestCount - 1);
+               this.showToast(res.message || 'Failed to submit claim request', 'error');
             }
+            this.cdr.detectChanges();
          },
          error: (err) => {
+            // Rollback optimistic update on error
+            this.claimingItemId = null;
+            item.hasRequested = false;
+            item.claimRequestCount = Math.max(0, item.claimRequestCount - 1);
             const msg = err.error?.message || 'Failed to submit claim request';
             this.showToast(msg, 'error');
+            this.cdr.detectChanges();
+         }
+      });
+   }
+
+   /**
+    * Cancel (withdraw) a claim request.
+    * Uses optimistic UI update with rollback on error.
+    */
+   cancelClaimRequest(item: DonationItem) {
+      // Set loading guard
+      this.claimingItemId = item.id;
+
+      // Save previous state for rollback
+      const prevHasRequested = item.hasRequested;
+      const prevCount = item.claimRequestCount;
+
+      // Optimistic UI update — instant button toggle
+      item.hasRequested = false;
+      item.claimRequestCount = Math.max(0, item.claimRequestCount - 1);
+      this.cdr.detectChanges();
+
+      this.http.delete<any>(`${environment.apiUrl}/donations/${item.id}/request`).subscribe({
+         next: (res) => {
+            this.claimingItemId = null;
+            if (res.success) {
+               // State already updated optimistically — just show toast
+               this.showToast(`Claim request cancelled for ${item.name}.`, 'success');
+            } else {
+               // Rollback on unexpected non-success
+               item.hasRequested = prevHasRequested;
+               item.claimRequestCount = prevCount;
+               this.showToast(res.message || 'Failed to cancel claim request', 'error');
+            }
+            this.cdr.detectChanges();
+         },
+         error: (err) => {
+            // Rollback optimistic update on error
+            this.claimingItemId = null;
+            item.hasRequested = prevHasRequested;
+            item.claimRequestCount = prevCount;
+            const msg = err.error?.message || 'Failed to cancel claim request';
+            this.showToast(msg, 'error');
+            this.cdr.detectChanges();
          }
       });
    }
@@ -289,6 +375,8 @@ export class DonationHubPage implements OnInit {
 
    /**
     * Confirm a specific claim request.
+    * Backend handles item transfer: marks donation as completed, clones to claimer.
+    * After success, refreshes both donation hub and donor's inventory.
     */
    confirmRequest(requester: ClaimRequester) {
       if (!this.requestsModalItem) return;
@@ -301,14 +389,19 @@ export class DonationHubPage implements OnInit {
             this.confirmingRequestId = null;
             if (res.success) {
                this.closeRequestsModal();
-               this.showToast(`Confirmed ${requester.name}'s claim request! They will be notified.`, 'success');
+               this.showToast(`Confirmed ${requester.name}'s request! The item has been transferred to their inventory.`, 'success');
+               // Refresh donation hub to remove the completed donation
                this.loadDonationsFromBackend();
+               // Refresh donor's local inventory to reflect the removal
+               this.inventoryService.loadItems().subscribe();
             }
+            this.cdr.detectChanges();
          },
          error: (err) => {
             this.confirmingRequestId = null;
             const msg = err.error?.message || 'Failed to confirm request';
             this.showToast(msg, 'error');
+            this.cdr.detectChanges();
          }
       });
    }

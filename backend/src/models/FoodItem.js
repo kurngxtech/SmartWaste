@@ -44,7 +44,8 @@ const foodItemSchema = new mongoose.Schema({
       'donating',
       'donated',
       'wasted',
-      'claimed'
+      'claimed',
+      'completed'
     ],
     default: 'available',
   },
@@ -71,6 +72,18 @@ const foodItemSchema = new mongoose.Schema({
   pickupLocation: {
     type: String,
     trim: true,
+  },
+  // Transfer tracking fields
+  donatedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  donatedFrom: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  completedAt: {
+    type: Date,
   }
 }, { timestamps: true });
 

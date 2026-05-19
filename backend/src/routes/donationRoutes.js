@@ -4,6 +4,7 @@ const {
   getDonations,
   claimDonation,
   requestClaim,
+  cancelClaimRequest,
   getClaimRequests,
   confirmClaimRequest,
   cancelDonation
@@ -15,6 +16,7 @@ router.use(protect);
 router.get('/', getDonations);
 router.post('/:id/claim', claimDonation);
 router.post('/:id/request', requestClaim);
+router.delete('/:id/request', cancelClaimRequest);
 router.get('/:id/requests', getClaimRequests);
 router.post('/:id/requests/:requestId/confirm', confirmClaimRequest);
 router.post('/:id/cancel', cancelDonation);

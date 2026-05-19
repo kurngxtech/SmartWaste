@@ -4,7 +4,10 @@ const FoodItem = require('../models/FoodItem');
 // @desc    Get all food items for the logged-in user
 const getInventory = async (req, res) => {
   try {
-    const items = await FoodItem.find({ userId: req.user.id }).sort({ expiryDate: 1 });
+    const items = await FoodItem.find({
+      userId: req.user.id,
+      status: { $ne: 'completed' }
+    }).sort({ expiryDate: 1 });
     res.status(200).json({ success: true, data: items });
   } catch (error) {
     console.error('[InventoryController.getInventory] Error:', error);

@@ -152,12 +152,31 @@
 
                <!-- Card Footer: Owner vs Non-owner actions -->
                <div class="p-4 bg-gray-50 border-t border-gray-100">
-                  <!-- NON-OWNER: Request to Claim -->
+                  <!-- NON-OWNER: Toggle Request to Claim / Cancel Request -->
                   <ng-container *ngIf="!item.isOwner">
-                     <button (click)="requestClaim(item)" [disabled]="item.status === 'Claimed'"
-                        class="w-full py-2 px-4 rounded-lg font-bold text-sm transition-colors flex items-center justify-center"
-                        [ngClass]="item.status === 'Claimed' ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-50 hover:bg-green-600 hover:text-white text-green-700 border border-green-200 hover:border-transparent'">
-                        {{ item.status === 'Claimed' ? 'Already Claimed' : 'Request to Claim' }}
+                     <button (click)="toggleClaimRequest(item)"
+                        [disabled]="item.status === 'Claimed' || claimingItemId === item.id"
+                        class="w-full py-2 px-4 rounded-lg font-bold text-sm transition-all duration-200 flex items-center justify-center"
+                        [ngClass]="item.status === 'Claimed'
+                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                           : claimingItemId === item.id
+                              ? 'bg-gray-100 text-gray-500 cursor-wait border border-gray-200'
+                              : item.hasRequested
+                                 ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-600 hover:text-white hover:border-transparent'
+                                 : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-600 hover:text-white hover:border-transparent'">
+                        <!-- Spinner while processing -->
+                        <svg *ngIf="claimingItemId === item.id" class="w-4 h-4 mr-1.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <!-- Request icon -->
+                        <svg *ngIf="!item.hasRequested && item.status !== 'Claimed' && claimingItemId !== item.id" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <!-- Cancel icon -->
+                        <svg *ngIf="item.hasRequested && item.status !== 'Claimed' && claimingItemId !== item.id" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        {{ claimingItemId === item.id ? 'Processing...' : (item.status === 'Claimed' ? 'Already Claimed' : (item.hasRequested ? 'Cancel Request' : 'Request to Claim')) }}
                      </button>
                   </ng-container>
 
