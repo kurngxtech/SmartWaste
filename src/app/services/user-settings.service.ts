@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 export interface UserProfile {
    name: string;
@@ -64,17 +65,19 @@ export class UserSettingsService {
    }
 
    public loadFromBackend() {
-      this.http.get<{ success: boolean, data: any }>('/api/auth/profile').subscribe({
+      this.http.get<{ success: boolean, data: any }>(`${environment.apiUrl}/auth/profile`).subscribe({
          next: (res) => {
             if (res.success && res.data) {
                const u = res.data;
-               this.profile.set({
+               const updatedProfile = {
                   name: u.name,
                   email: u.email,
                   phone: u.phone,
                   householdSize: u.householdSize,
                   avatarUrl: u.avatarUrl
-               });
+               };
+               this.profile.set(updatedProfile);
+               this._syncLocalStorage(updatedProfile);
                this.preferences.set({
                   expiryAlerts: u.expiryAlerts,
                   donationUpdates: u.donationUpdates,
@@ -98,12 +101,14 @@ export class UserSettingsService {
    }
 
    private _persistToBackend(data: Partial<UserProfile & UserPreferences>) {
-      this.http.put<{ success: boolean, data: any }>('/api/auth/profile', data).subscribe({
+      this.http.put<{ success: boolean, data: any }>(`${environment.apiUrl}/auth/profile`, data).subscribe({
          next: (res) => {
             if (res.success && res.data) {
                const u = res.data;
                // Update local signals
-               this.profile.update(p => ({ ...p, name: u.name, phone: u.phone, householdSize: u.householdSize, avatarUrl: u.avatarUrl }));
+               const updatedProfile = { ...this.profile(), name: u.name, phone: u.phone, householdSize: u.householdSize, avatarUrl: u.avatarUrl };
+               this.profile.set(updatedProfile);
+               this._syncLocalStorage(updatedProfile);
                this.preferences.update(p => ({
                   ...p,
                   expiryAlerts: u.expiryAlerts,
@@ -125,6 +130,22 @@ export class UserSettingsService {
          },
          error: (err) => console.error('Failed to update user profile in backend', err)
       });
+   }
+
+   /**
+    * Keep localStorage 'user' in sync with the latest profile data.
+    * This ensures that on page refresh, _loadProfile() reads current data
+    * instead of stale login-time data (which would lack updated avatarUrl, etc.).
+    */
+   private _syncLocalStorage(profile: UserProfile) {
+      if (typeof window !== 'undefined') {
+         try {
+            const raw = localStorage.getItem('user');
+            const existing = raw ? JSON.parse(raw) : {};
+            const merged = { ...existing, ...profile };
+            localStorage.setItem('user', JSON.stringify(merged));
+         } catch (_) { /* localStorage may be unavailable in SSR */ }
+      }
    }
 
    private _defaultProfile(): UserProfile {

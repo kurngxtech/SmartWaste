@@ -18,7 +18,20 @@ export class AnalyticsService {
       wasteReductionRate: 0
    });
 
+   // Flag indicating cached data is stale and should be re-fetched
+   private _stale = true;
+
    constructor() { }
+
+   /** Mark analytics as stale so next dashboard visit triggers a fresh fetch */
+   invalidate() {
+      this._stale = true;
+   }
+
+   /** Returns true if the summary data needs re-fetching */
+   isStale(): boolean {
+      return this._stale;
+   }
 
    // Fetch the real summary from the backend
    fetchSummary(): Observable<any> {
@@ -32,6 +45,7 @@ export class AnalyticsService {
                   totalWasted: res.data.wastedItems ?? res.data.totalWasted ?? 0,
                   wasteReductionRate: res.data.wasteReductionRate ?? 0
                });
+               this._stale = false;
             }
          }),
          catchError(err => {

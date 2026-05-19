@@ -51,6 +51,26 @@ const foodItemSchema = new mongoose.Schema({
   notes: {
     type: String,
     trim: true,
+  },
+  // Donation-specific fields
+  donationQuantity: {
+    type: Number,
+    default: 0,
+  },
+  pickupDate: {
+    type: Date,
+  },
+  pickupTime: {
+    type: String,
+    trim: true,
+  },
+  contactPhone: {
+    type: String,
+    trim: true,
+  },
+  pickupLocation: {
+    type: String,
+    trim: true,
   }
 }, { timestamps: true });
 

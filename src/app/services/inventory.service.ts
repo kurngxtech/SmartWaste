@@ -116,19 +116,20 @@ export class InventoryService {
                diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             }
 
-            item.daysLeft = diffDays;
-
             // Respect terminal status for the label
-            if (item.status === 'Donated' || item.status === 'Planned' || item.status === 'Used') return item;
-
-            if (diffDays <= 0) {
-               item.status = 'Expired';
-            } else if (diffDays <= 3) {
-               item.status = 'Expiring soon';
-            } else {
-               item.status = 'Good';
+            if (item.status === 'Donated' || item.status === 'Planned' || item.status === 'Used') {
+               return { ...item, daysLeft: diffDays };
             }
-            return item;
+
+            let newStatus = item.status;
+            if (diffDays <= 0) {
+               newStatus = 'Expired';
+            } else if (diffDays <= 3) {
+               newStatus = 'Expiring soon';
+            } else {
+               newStatus = 'Good';
+            }
+            return { ...item, daysLeft: diffDays, status: newStatus };
          });
       });
    }
@@ -200,6 +201,13 @@ export class InventoryService {
          const noteText = frontendItem.note || '-';
          payload.notes = `Location: ${loc}; Note: ${noteText}`;
       }
+
+      // Donation-specific fields
+      if (frontendItem.donationQuantity != null) payload.donationQuantity = frontendItem.donationQuantity;
+      if (frontendItem.pickupDate) payload.pickupDate = frontendItem.pickupDate;
+      if (frontendItem.pickupTime) payload.pickupTime = frontendItem.pickupTime;
+      if (frontendItem.contactPhone) payload.contactPhone = frontendItem.contactPhone;
+      if (frontendItem.pickupLocation) payload.pickupLocation = frontendItem.pickupLocation;
 
       return payload;
    }

@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import {
    MealPlan,
    AddMealDto,
@@ -10,6 +11,7 @@ import {
 } from '../models/meal-plan.model';
 import { FoodItem } from '../shared/models/food-item';
 import { InventoryService } from './inventory.service';
+import { AnalyticsService } from './analytics.service';
 import { inject } from '@angular/core';
 
 @Injectable({
@@ -17,6 +19,7 @@ import { inject } from '@angular/core';
 })
 export class MealPlannerService {
    private inventoryService = inject(InventoryService);
+   private analyticsService = inject(AnalyticsService);
    private http = inject(HttpClient);
    
    private _plans = signal<MealPlan[]>([]);
@@ -46,7 +49,7 @@ export class MealPlannerService {
    }
 
    loadPlans(): void {
-      this.http.get<{ success: boolean, data: MealPlan[] }>('/api/mealplans').subscribe({
+      this.http.get<{ success: boolean, data: MealPlan[] }>(`${environment.apiUrl}/mealplans`).subscribe({
          next: (res) => {
             if (res.success) {
                this._plans.set(res.data);
@@ -57,6 +60,16 @@ export class MealPlannerService {
    }
 
    getAvailableInventory(): any[] {
+      return this.inventoryService.items().filter((item: any) =>
+         item.quantity > 0 &&
+         item.status !== 'Used' &&
+         item.status !== 'Donated' &&
+         item.status !== 'Expired'
+      );
+   }
+
+   /** Returns ALL inventory items (including used/expired) for reservation lookups */
+   getAllInventoryItems(): any[] {
       return this.inventoryService.items();
    }
 
@@ -71,7 +84,7 @@ export class MealPlannerService {
             inventory.some(inv => inv.name.toLowerCase() === req.toLowerCase())
          );
          const usesExpiring = inventory.some(inv =>
-            matched.includes(inv.name) && inv.status === 'expiring'
+            matched.includes(inv.name) && (inv.status === 'Expiring soon' || inv.status === 'expiring')
          );
          return {
             ...recipe,
@@ -107,12 +120,17 @@ export class MealPlannerService {
    }
 
    addPlan(dto: AddMealDto): void {
-      this.http.post<{ success: boolean, data: MealPlan }>('/api/mealplans', dto).subscribe({
+      this.http.post<{ success: boolean, data: MealPlan }>(`${environment.apiUrl}/mealplans`, dto).subscribe({
          next: (res) => {
             if (res.success) {
                this._plans.update(plans => [...plans, res.data]);
-               // Refresh inventory because quantities were reduced
+               // Refresh inventory because quantities were reduced by the backend
                this.inventoryService.loadItems().subscribe();
+               // Reload plans from backend to ensure ingredient itemIds are consistent
+               // (server ObjectId serialization vs frontend string)
+               this.loadPlans();
+               // Invalidate analytics so dashboard re-fetches the updated 'food saved' count
+               this.analyticsService.invalidate();
             }
          },
          error: (err) => console.error('Failed to save meal plan', err)
@@ -120,7 +138,7 @@ export class MealPlannerService {
    }
 
    removePlan(id: number | string): void {
-      this.http.delete(`/api/mealplans/${id}`).subscribe({
+      this.http.delete(`${environment.apiUrl}/mealplans/${id}`).subscribe({
          next: () => {
             this._plans.update(plans => plans.filter(p => String(p.id) !== String(id)));
          },

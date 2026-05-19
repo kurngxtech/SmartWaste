@@ -74,7 +74,8 @@ export class MealPlannerPage {
 
    readonly reservedList = computed(() => {
       const map = this.svc.reservedByItemId();
-      const inventory = this.svc.getAvailableInventory();
+      // Use ALL inventory items (not just available) so fully-consumed items still appear
+      const inventory = this.svc.getAllInventoryItems();
       return inventory
          .filter(i => map.has(i.id))
          .map(i => ({

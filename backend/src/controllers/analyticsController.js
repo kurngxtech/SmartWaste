@@ -1,4 +1,5 @@
 const FoodItem = require('../models/FoodItem');
+const MealPlan = require('../models/MealPlan');
 
 // @route   GET /api/analytics/summary
 // @desc    Get food waste analytics summary for the logged-in user
@@ -8,6 +9,9 @@ const getAnalyticsSummary = async (req, res) => {
 
     // Fetch all items for the user
     const items = await FoodItem.find({ userId });
+
+    // Fetch all meal plans to count food saved through meal planning
+    const mealPlans = await MealPlan.find({ userId });
 
     let usedCount = 0;
     let wastedCount = 0;
@@ -27,8 +31,27 @@ const getAnalyticsSummary = async (req, res) => {
       }
     });
 
-    // Waste Reduction Rate = (Used Items / Total Items) × 100%
-    // To make it more positive, we can include donated items as well: ((Used + Donated) / Total Tracked) * 100
+    // Count total unique food items consumed through meal plans.
+    // This captures partial-use scenarios where items stay 'available' status
+    // but have been used in meal planning (i.e. food saved from waste).
+    const savedItemIds = new Set();
+    let totalSavedQuantity = 0;
+    mealPlans.forEach(plan => {
+      if (plan.ingredients && plan.ingredients.length > 0) {
+        plan.ingredients.forEach(ing => {
+          if (ing.itemId) {
+            savedItemIds.add(ing.itemId.toString());
+            totalSavedQuantity += ing.quantity || 0;
+          }
+        });
+      }
+    });
+
+    // "Food Saved" = unique items consumed via meal plans OR marked as 'used'
+    // Use the larger of: items with 'used' status, or items referenced in meal plans
+    const totalFoodSaved = Math.max(usedCount, savedItemIds.size);
+
+    // Waste Reduction Rate = ((Used + Donated) / Total Tracked) * 100
     let wasteReductionRate = 0;
     if (totalTracked > 0) {
       wasteReductionRate = ((usedCount + donatedCount) / totalTracked) * 100;
@@ -37,9 +60,10 @@ const getAnalyticsSummary = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
-        usedItems: usedCount,
+        usedItems: totalFoodSaved,
         wastedItems: wastedCount,
         donatedItems: donatedCount,
+        totalSavedQuantity: totalSavedQuantity,
         wasteReductionRate: wasteReductionRate.toFixed(2) + '%'
       }
     });

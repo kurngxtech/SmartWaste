@@ -5,17 +5,34 @@ import { HttpClient } from '@angular/common/http';
 import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { InventoryService } from '../../services/inventory.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 import { environment } from '../../../environments/environment';
+
+export interface ClaimRequester {
+   id: string;
+   name: string;
+   phone: string;
+   email: string;
+   message: string;
+   requestedAt: string;
+   status: string;
+}
 
 export interface DonationItem {
    id: string;
    name: string;
    category: string;
+   quantity: number;
    expiryDate: string;
    pickupLocation: string;
+   pickupDate: string;
+   pickupTime: string;
    status: 'Available' | 'Claimed';
    postedBy: string;
    phoneNumber: string;
+   isOwner: boolean;
+   claimRequestCount: number;
+   ownerUserId: string;
 }
 
 @Component({
@@ -27,6 +44,7 @@ export interface DonationItem {
 })
 export class DonationHubPage implements OnInit {
    private inventoryService = inject(InventoryService);
+   private userSettings = inject(UserSettingsService);
    private http = inject(HttpClient);
 
    donations: DonationItem[] = [];
@@ -45,6 +63,16 @@ export class DonationHubPage implements OnInit {
    toastType: 'success' | 'error' = 'success';
    isLoading = false;
 
+   // View Requests Modal state
+   showRequestsModal = false;
+   requestsModalItem: DonationItem | null = null;
+   claimRequesters: ClaimRequester[] = [];
+   isLoadingRequests = false;
+   confirmingRequestId: string | null = null;
+
+   // Current user ID for ownership check
+   currentUserId = '';
+
    constructor(
       private cdr: ChangeDetectorRef,
       @Inject(PLATFORM_ID) private platformId: Object
@@ -52,7 +80,24 @@ export class DonationHubPage implements OnInit {
 
    ngOnInit() {
       if (!isPlatformBrowser(this.platformId)) return;
+
+      // Extract current userId from stored token
+      this.currentUserId = this.extractUserIdFromToken();
       this.loadDonationsFromBackend();
+   }
+
+   /**
+    * Extract userId from the JWT stored in localStorage.
+    */
+   private extractUserIdFromToken(): string {
+      try {
+         const token = localStorage.getItem('accessToken');
+         if (!token) return '';
+         const payload = JSON.parse(atob(token.split('.')[1]));
+         return payload.userId || payload.id || '';
+      } catch {
+         return '';
+      }
    }
 
    /**
@@ -65,23 +110,38 @@ export class DonationHubPage implements OnInit {
          next: (res) => {
             this.isLoading = false;
             if (res.success && res.data) {
-               this.donations = res.data.map((item: any) => ({
-                  id: item._id,
-                  name: item.name,
-                  category: item.category,
-                  expiryDate: item.expiryDate ? item.expiryDate.split('T')[0] : '',
-                  pickupLocation: item.notes || 'Contact donor',
-                  status: 'Available' as const,
-                  postedBy: item.userId?.name || 'Anonymous',
-                  phoneNumber: 'Contact via app'
-               }));
+               this.donations = res.data.map((item: any) => {
+                  // Format pickup date
+                  let pickupDateStr = '';
+                  if (item.pickupDate) {
+                     const d = new Date(item.pickupDate);
+                     pickupDateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                  }
+
+                  const ownerUserId = item.ownerUserId || item.userId?._id || '';
+
+                  return {
+                     id: item._id,
+                     name: item.name,
+                     category: item.category,
+                     quantity: item.donationQuantity || item.quantity || 1,
+                     expiryDate: item.expiryDate ? item.expiryDate.split('T')[0] : '',
+                     pickupLocation: item.pickupLocation || item.notes || 'Contact donor',
+                     pickupDate: pickupDateStr,
+                     pickupTime: item.pickupTime || '',
+                     status: (item.status === 'claimed' ? 'Claimed' : 'Available') as 'Available' | 'Claimed',
+                     postedBy: item.userId?.name || 'Anonymous',
+                     phoneNumber: item.contactPhone || item.userId?.phone || 'Contact via app',
+                     isOwner: ownerUserId === this.currentUserId,
+                     claimRequestCount: item.claimRequestCount || 0,
+                     ownerUserId: ownerUserId
+                  };
+               });
                this.filteredDonations = [...this.donations];
-               this.cdr.detectChanges();
             }
          },
          error: (err) => {
             this.isLoading = false;
-            this.cdr.detectChanges();
             console.error('Failed to load donations from backend', err);
          }
       });
@@ -113,27 +173,53 @@ export class DonationHubPage implements OnInit {
       }).reverse();
    }
 
+   /**
+    * Request to claim a donation (for non-owners).
+    */
+   requestClaim(item: DonationItem) {
+      if (item.status === 'Claimed' || item.isOwner) return;
+
+      this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/request`, {}).subscribe({
+         next: (res) => {
+            if (res.success) {
+               setTimeout(() => {
+                  item.claimRequestCount++;
+                  this.showToast(`Claim request submitted for ${item.name}! The donor will review your request.`, 'success');
+               });
+            }
+         },
+         error: (err) => {
+            const msg = err.error?.message || 'Failed to submit claim request';
+            this.showToast(msg, 'error');
+         }
+      });
+   }
+
+   /**
+    * Legacy direct claim (kept for backwards compat).
+    */
    claimDonation(item: DonationItem) {
       if (item.status === 'Claimed') return;
 
       this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/claim`, {}).subscribe({
          next: (res) => {
             if (res.success) {
-               item.status = 'Claimed';
+               setTimeout(() => {
+                  this.showToast(`Successfully claimed ${item.name}! Added to your inventory.`, 'success');
+                  this.loadDonationsFromBackend();
 
-               // Also add the claimed item to the current user's local inventory
-               this.inventoryService.addItem({
-                  name: item.name,
-                  category: item.category,
-                  quantity: 1,
-                  expiryDate: item.expiryDate,
-                  location: 'Fridge',
-                  status: 'Good',
-                  note: `Claimed from ${item.postedBy}`,
-                  isClaimed: true
-               }).subscribe();
-
-               this.showToast(`Successfully claimed ${item.name}! Added to your inventory.`, 'success');
+                  // Also add the claimed item to the current user's local inventory
+                  this.inventoryService.addItem({
+                     name: item.name,
+                     category: item.category,
+                     quantity: 1,
+                     expiryDate: item.expiryDate,
+                     location: 'Fridge',
+                     status: 'Good',
+                     note: `Claimed from ${item.postedBy}`,
+                     isClaimed: true
+                  }).subscribe();
+               });
             }
          },
          error: (err) => {
@@ -143,14 +229,93 @@ export class DonationHubPage implements OnInit {
       });
    }
 
+   /**
+    * Cancel a donation (only for the owner).
+    */
    cancelDonation(item: DonationItem) {
-      const invItem = this.inventoryService.getItemById(item.id);
-      if (invItem) {
-         this.inventoryService.updateItem(invItem.id, { status: 'Good' }).subscribe();
-      }
-      this.donations = this.donations.filter(d => d.id !== item.id);
-      this.applyFilters();
-      this.showToast(`Donation cancelled. Item returned to inventory.`, 'success');
+      this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/cancel`, {}).subscribe({
+         next: (res) => {
+            if (res.success) {
+               setTimeout(() => {
+                  this.showToast(`Donation cancelled. Item returned to inventory.`, 'success');
+                  this.loadDonationsFromBackend();
+                  this.inventoryService.loadItems().subscribe();
+               });
+            }
+         },
+         error: (err) => {
+            const msg = err.error?.message || 'Failed to cancel donation';
+            this.showToast(msg, 'error');
+         }
+      });
+   }
+
+   /**
+    * Open the "View Requests" modal for a donation.
+    */
+   openRequestsModal(item: DonationItem) {
+      this.requestsModalItem = item;
+      this.showRequestsModal = true;
+      this.claimRequesters = [];
+      this.isLoadingRequests = true;
+      this.confirmingRequestId = null;
+
+      this.http.get<any>(`${environment.apiUrl}/donations/${item.id}/requests`).subscribe({
+         next: (res) => {
+            this.isLoadingRequests = false;
+            if (res.success && res.data) {
+               this.claimRequesters = res.data.map((r: any) => ({
+                  id: r._id,
+                  name: r.requesterId?.name || 'Unknown',
+                  phone: r.requesterId?.phone || 'N/A',
+                  email: r.requesterId?.email || 'N/A',
+                  message: r.message || '',
+                  requestedAt: new Date(r.createdAt).toLocaleDateString('en-GB', {
+                     day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                  }),
+                  status: r.status
+               }));
+            }
+         },
+         error: () => {
+            this.isLoadingRequests = false;
+            this.showToast('Failed to load claim requests', 'error');
+         }
+      });
+   }
+
+   closeRequestsModal() {
+      this.showRequestsModal = false;
+      this.requestsModalItem = null;
+      this.claimRequesters = [];
+   }
+
+   /**
+    * Confirm a specific claim request.
+    */
+   confirmRequest(requester: ClaimRequester) {
+      if (!this.requestsModalItem) return;
+      this.confirmingRequestId = requester.id;
+
+      this.http.post<any>(
+         `${environment.apiUrl}/donations/${this.requestsModalItem.id}/requests/${requester.id}/confirm`, {}
+      ).subscribe({
+         next: (res) => {
+            this.confirmingRequestId = null;
+            if (res.success) {
+               setTimeout(() => {
+                  this.closeRequestsModal();
+                  this.showToast(`Confirmed ${requester.name}'s claim request! They will be notified.`, 'success');
+                  this.loadDonationsFromBackend();
+               });
+            }
+         },
+         error: (err) => {
+            this.confirmingRequestId = null;
+            const msg = err.error?.message || 'Failed to confirm request';
+            this.showToast(msg, 'error');
+         }
+      });
    }
 
    showToast(message: string, type: 'success' | 'error') {

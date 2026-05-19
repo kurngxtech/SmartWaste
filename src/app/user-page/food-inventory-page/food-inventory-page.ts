@@ -6,6 +6,7 @@ import { SideBarNavigation } from '../side-bar-navigation/side-bar-navigation';
 import { Header } from '../header/header';
 import { MealPlannerService } from '../../services/meal-planner';
 import { InventoryService, InventoryItem } from '../../services/inventory.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -51,6 +52,7 @@ export class FoodInventoryPageComponent implements OnInit {
    today = new Date();
    showToast = signal(false);
    isLoading = false;
+   Math = Math; // Expose Math for template expressions
 
    triggerToast() {
       this.showToast.set(true);
@@ -61,6 +63,7 @@ export class FoodInventoryPageComponent implements OnInit {
       private fb: FormBuilder,
       private mealPlannerService: MealPlannerService,
       private inventoryService: InventoryService,
+      private userSettings: UserSettingsService,
       private router: Router,
       private route: ActivatedRoute,
       private cdr: ChangeDetectorRef,
@@ -76,8 +79,12 @@ export class FoodInventoryPageComponent implements OnInit {
       });
 
       this.donateForm = this.fb.group({
-         pickupAvailability: ['', Validators.required],
-         note: ['']
+         donateQuantity: [1, [Validators.required, Validators.min(1)]],
+         pickupDate: ['', Validators.required],
+         pickupTime: ['', Validators.required],
+         contactPhone: ['', Validators.required],
+         useAccountPhone: [false],
+         pickupLocation: ['', Validators.required]
       });
    }
 
@@ -118,7 +125,7 @@ export class FoodInventoryPageComponent implements OnInit {
    }
 
    calculateSummary() {
-      this.totalItems = this.items.length;
+      this.totalItems = this.items.reduce((sum, i) => sum + (i.quantity || 0), 0);
       this.expiringSoonCount = this.items.filter(i => i.status === 'Expiring soon').length;
       this.expiredCount = this.items.filter(i => i.status === 'Expired').length;
       this.donatedCount = this.items.filter(i => i.status === 'Donated').length;
@@ -180,8 +187,9 @@ export class FoodInventoryPageComponent implements OnInit {
                this.applyFilters();
                this.closeAddModal();
                this.triggerToast();
+               this.cdr.detectChanges();
             },
-            error: () => this.isLoading = false
+            error: () => { this.isLoading = false; this.cdr.detectChanges(); }
          });
       } else {
          this.inventoryService.addItem(val).subscribe({
@@ -192,9 +200,11 @@ export class FoodInventoryPageComponent implements OnInit {
                this.applyFilters();
                this.closeAddModal();
                this.triggerToast();
+               this.cdr.detectChanges();
             },
             error: (err) => {
                this.isLoading = false;
+               this.cdr.detectChanges();
                alert('Error adding food item: ' + (err.error?.message || 'Server error'));
             }
          });
@@ -207,6 +217,7 @@ export class FoodInventoryPageComponent implements OnInit {
          this.items = [...this.inventoryService.items()];
          this.calculateSummary();
          this.applyFilters();
+         this.cdr.detectChanges();
       });
    }
 
@@ -215,6 +226,7 @@ export class FoodInventoryPageComponent implements OnInit {
          this.items = [...this.inventoryService.items()];
          this.calculateSummary();
          this.applyFilters();
+         this.cdr.detectChanges();
       });
    }
 
@@ -238,6 +250,7 @@ export class FoodInventoryPageComponent implements OnInit {
             reminderEnabled: false
          });
          
+         this.cdr.detectChanges();
          this.router.navigate(['/meal-planner']);
       });
    }
@@ -245,7 +258,19 @@ export class FoodInventoryPageComponent implements OnInit {
    // Donate Logic
    openDonateModal(item: InventoryItem) {
       this.itemToDonate = item;
-      this.donateForm.reset();
+      this.donateForm.reset({
+         donateQuantity: item.quantity,
+         pickupDate: '',
+         pickupTime: '',
+         contactPhone: '',
+         useAccountPhone: false,
+         pickupLocation: ''
+      });
+      // Set max quantity validator dynamically
+      this.donateForm.get('donateQuantity')?.setValidators([
+         Validators.required, Validators.min(1), Validators.max(item.quantity)
+      ]);
+      this.donateForm.get('donateQuantity')?.updateValueAndValidity();
       this.showDonateModal = true;
    }
 
@@ -254,22 +279,89 @@ export class FoodInventoryPageComponent implements OnInit {
       this.itemToDonate = null;
    }
 
+   donateAll() {
+      if (this.itemToDonate) {
+         this.donateForm.get('donateQuantity')?.setValue(this.itemToDonate.quantity);
+      }
+   }
+
+   decrementDonateQuantity() {
+      const ctrl = this.donateForm.get('donateQuantity');
+      if (ctrl) {
+         const current = ctrl.value || 1;
+         ctrl.setValue(Math.max(1, current - 1));
+      }
+   }
+
+   incrementDonateQuantity() {
+      const ctrl = this.donateForm.get('donateQuantity');
+      if (ctrl) {
+         const maxQty = this.itemToDonate?.quantity || 1;
+         const current = ctrl.value || 1;
+         ctrl.setValue(Math.min(maxQty, current + 1));
+      }
+   }
+
+   onUseAccountPhoneChange() {
+      const useAccount = this.donateForm.get('useAccountPhone')?.value;
+      if (useAccount) {
+         const phone = this.userSettings.profile().phone || '';
+         this.donateForm.get('contactPhone')?.setValue(phone);
+         this.donateForm.get('contactPhone')?.disable();
+      } else {
+         this.donateForm.get('contactPhone')?.setValue('');
+         this.donateForm.get('contactPhone')?.enable();
+      }
+   }
+
    confirmDonation() {
       if (this.donateForm.invalid || !this.itemToDonate) return;
 
-      const noteText = this.donateForm.get('note')?.value || '';
-      const pickup = this.donateForm.get('pickupAvailability')?.value || '';
-      const fullNote = `Pickup: ${pickup}; Note: ${noteText}`;
+      const formVal = this.donateForm.getRawValue();
+      const donateQty = formVal.donateQuantity;
+      const remainingQty = this.itemToDonate.quantity - donateQty;
 
-      this.inventoryService.updateItem(this.itemToDonate.id, { 
+      // Build donation-specific data for the backend
+      const donationData: any = {
          status: 'Donated',
-         note: fullNote
-      }).subscribe(() => {
-         this.items = [...this.inventoryService.items()];
-         this.calculateSummary();
-         this.applyFilters();
-         this.closeDonateModal();
-      });
+         donationQuantity: donateQty,
+         pickupDate: formVal.pickupDate,
+         pickupTime: formVal.pickupTime,
+         contactPhone: formVal.contactPhone,
+         pickupLocation: formVal.pickupLocation,
+         note: `Location: ${this.itemToDonate.location}; Note: Pickup at ${formVal.pickupLocation}`
+      };
+
+      if (remainingQty > 0) {
+         // Partial donation: reduce original item quantity, then create a new donated item
+         this.inventoryService.updateItem(this.itemToDonate.id, { quantity: remainingQty }).subscribe(() => {
+            // Create a separate donated item entry
+            this.inventoryService.addItem({
+               name: this.itemToDonate!.name,
+               category: this.itemToDonate!.category,
+               quantity: donateQty,
+               expiryDate: this.itemToDonate!.expiryDate,
+               location: this.itemToDonate!.location,
+               ...donationData
+            }).subscribe(() => {
+               this.items = [...this.inventoryService.items()];
+               this.calculateSummary();
+               this.applyFilters();
+               setTimeout(() => this.closeDonateModal());
+            });
+         });
+      } else {
+         // Full donation: update existing item
+         this.inventoryService.updateItem(this.itemToDonate.id, {
+            ...donationData,
+            quantity: donateQty
+         }).subscribe(() => {
+            this.items = [...this.inventoryService.items()];
+            this.calculateSummary();
+            this.applyFilters();
+            setTimeout(() => this.closeDonateModal());
+         });
+      }
    }
 
    // Delete Logic
@@ -290,6 +382,7 @@ export class FoodInventoryPageComponent implements OnInit {
          this.calculateSummary();
          this.applyFilters();
          this.closeDeleteModal();
+         this.cdr.detectChanges();
       });
    }
 

@@ -138,6 +138,7 @@ export class AddMealModalComponent implements OnInit {
    }
 
    isExpiringItem(item: FoodItem): boolean {
-      return item.status === 'expiring' || item.status === 'expired';
+      return item.status === 'Expiring Soon' || item.status === 'Expired' ||
+             item.status === 'expiring' || item.status === 'expired';
    }
 }

@@ -263,8 +263,8 @@
 <!-- Donate Modal -->
 <div *ngIf="showDonateModal"
    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-   <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden transform transition-all">
-      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+   <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
+      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
          <h3 class="text-lg font-bold text-gray-800">Convert to Donation</h3>
          <button (click)="closeDonateModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,31 +272,93 @@
             </svg>
          </button>
       </div>
-      <div class="p-6">
-         <div class="bg-green-50 border border-green-100 rounded-lg p-4 mb-4">
+      <div class="p-6 overflow-y-auto">
+         <!-- Item Summary -->
+         <div class="bg-green-50 border border-green-100 rounded-lg p-4 mb-5">
             <p class="text-sm text-green-800 font-medium">You are donating:</p>
-            <p class="text-lg font-bold text-green-900">{{ itemToDonate?.quantity }}x {{ itemToDonate?.name }}</p>
-            <p class="text-xs text-green-700">{{ itemToDonate?.category }}</p>
+            <p class="text-lg font-bold text-green-900">{{ itemToDonate?.name }}</p>
+            <p class="text-xs text-green-700">{{ itemToDonate?.category }} · {{ itemToDonate?.quantity }} available</p>
          </div>
+
          <form [formGroup]="donateForm" (ngSubmit)="confirmDonation()">
-            <div class="space-y-4">
+            <div class="space-y-5">
+
+               <!-- 1. Quantity Selector -->
                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Availability *</label>
-                  <input type="text" formControlName="pickupAvailability" placeholder="e.g. Today 5-7 PM"
-                     class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Quantity to Donate *</label>
+                  <div class="flex items-center gap-3">
+                     <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                        <button type="button"
+                           (click)="decrementDonateQuantity()"
+                           class="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold transition-colors border-r border-gray-300">
+                           −
+                        </button>
+                        <input type="number" formControlName="donateQuantity" min="1" [max]="itemToDonate?.quantity || 1"
+                           class="w-16 text-center py-2 outline-none text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                        <button type="button"
+                           (click)="incrementDonateQuantity()"
+                           class="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold transition-colors border-l border-gray-300">
+                           +
+                        </button>
+                     </div>
+                     <span class="text-sm text-gray-500">of {{ itemToDonate?.quantity }}</span>
+                     <button type="button" (click)="donateAll()"
+                        class="ml-auto px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">
+                        Donate All
+                     </button>
+                  </div>
+                  <p *ngIf="donateForm.get('donateQuantity')?.hasError('max')" class="text-xs text-red-500 mt-1">
+                     Cannot exceed available quantity ({{ itemToDonate?.quantity }})
+                  </p>
                </div>
+
+               <!-- 2. Pickup Date & Time -->
                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Additional Note (Optional)</label>
-                  <textarea formControlName="note" rows="2" placeholder="Any special instructions..."
-                     class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"></textarea>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Pickup Schedule *</label>
+                  <div class="flex gap-3">
+                     <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">Date</label>
+                        <input type="date" formControlName="pickupDate"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm">
+                     </div>
+                     <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">Time</label>
+                        <input type="time" formControlName="pickupTime"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm">
+                     </div>
+                  </div>
                </div>
+
+               <!-- 3. Phone Number with Auto-fill -->
+               <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Contact Phone Number *</label>
+                  <div class="flex items-center gap-2 mb-2">
+                     <input type="checkbox" formControlName="useAccountPhone"
+                        (change)="onUseAccountPhoneChange()"
+                        id="useAccountPhone"
+                        class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer">
+                     <label for="useAccountPhone" class="text-xs text-gray-600 cursor-pointer select-none">
+                        Use my account phone number
+                     </label>
+                  </div>
+                  <input type="tel" formControlName="contactPhone" placeholder="e.g. +60 12-345-6789"
+                     class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm disabled:bg-gray-100 disabled:text-gray-500">
+               </div>
+
+               <!-- 4. Pickup Location -->
+               <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Location *</label>
+                  <p class="text-xs text-gray-400 mb-2">Enter the address or location details where the food items will be available for pickup.</p>
+                  <textarea formControlName="pickupLocation" rows="2" placeholder="e.g. Block A, Level 3, Room 302 — near the elevator lobby"
+                     class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm"></textarea>
+               </div>
+
             </div>
             <div class="mt-6 flex justify-end space-x-3">
                <button type="button" (click)="closeDonateModal()"
                   class="btn-secondary">Cancel</button>
                <button type="submit" [disabled]="donateForm.invalid"
-                  class="btn-primary">Confirm
-                  Donation</button>
+                  class="btn-primary">Confirm Donation</button>
             </div>
          </form>
       </div>
@@ -325,4 +387,4 @@
       </div>
    </div>
 </div>
-
+
