@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback_secret', {
-    expiresIn: '15m' // Short lived access token
+    expiresIn: '3h' // 3 hours access token
   });
 };
 
