@@ -347,7 +347,8 @@ export class FoodInventoryPageComponent implements OnInit {
                this.items = [...this.inventoryService.items()];
                this.calculateSummary();
                this.applyFilters();
-               setTimeout(() => this.closeDonateModal());
+               this.closeDonateModal();
+               this.cdr.detectChanges();
             });
          });
       } else {
@@ -359,7 +360,8 @@ export class FoodInventoryPageComponent implements OnInit {
             this.items = [...this.inventoryService.items()];
             this.calculateSummary();
             this.applyFilters();
-            setTimeout(() => this.closeDonateModal());
+            this.closeDonateModal();
+            this.cdr.detectChanges();
          });
       }
    }

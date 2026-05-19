@@ -46,6 +46,7 @@ export class DonationHubPage implements OnInit {
    private inventoryService = inject(InventoryService);
    private userSettings = inject(UserSettingsService);
    private http = inject(HttpClient);
+   private cdr = inject(ChangeDetectorRef);
 
    donations: DonationItem[] = [];
    filteredDonations: DonationItem[] = [];
@@ -74,14 +75,13 @@ export class DonationHubPage implements OnInit {
    currentUserId = '';
 
    constructor(
-      private cdr: ChangeDetectorRef,
       @Inject(PLATFORM_ID) private platformId: Object
    ) {}
 
    ngOnInit() {
+      // Only load data in the browser — SSR has no auth token
       if (!isPlatformBrowser(this.platformId)) return;
 
-      // Extract current userId from stored token
       this.currentUserId = this.extractUserIdFromToken();
       this.loadDonationsFromBackend();
    }
@@ -139,10 +139,12 @@ export class DonationHubPage implements OnInit {
                });
                this.filteredDonations = [...this.donations];
             }
+            this.cdr.detectChanges();
          },
          error: (err) => {
             this.isLoading = false;
             console.error('Failed to load donations from backend', err);
+            this.cdr.detectChanges();
          }
       });
    }
@@ -182,10 +184,8 @@ export class DonationHubPage implements OnInit {
       this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/request`, {}).subscribe({
          next: (res) => {
             if (res.success) {
-               setTimeout(() => {
-                  item.claimRequestCount++;
-                  this.showToast(`Claim request submitted for ${item.name}! The donor will review your request.`, 'success');
-               });
+               item.claimRequestCount++;
+               this.showToast(`Claim request submitted for ${item.name}! The donor will review your request.`, 'success');
             }
          },
          error: (err) => {
@@ -204,22 +204,20 @@ export class DonationHubPage implements OnInit {
       this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/claim`, {}).subscribe({
          next: (res) => {
             if (res.success) {
-               setTimeout(() => {
-                  this.showToast(`Successfully claimed ${item.name}! Added to your inventory.`, 'success');
-                  this.loadDonationsFromBackend();
+               this.showToast(`Successfully claimed ${item.name}! Added to your inventory.`, 'success');
+               this.loadDonationsFromBackend();
 
-                  // Also add the claimed item to the current user's local inventory
-                  this.inventoryService.addItem({
-                     name: item.name,
-                     category: item.category,
-                     quantity: 1,
-                     expiryDate: item.expiryDate,
-                     location: 'Fridge',
-                     status: 'Good',
-                     note: `Claimed from ${item.postedBy}`,
-                     isClaimed: true
-                  }).subscribe();
-               });
+               // Also add the claimed item to the current user's local inventory
+               this.inventoryService.addItem({
+                  name: item.name,
+                  category: item.category,
+                  quantity: 1,
+                  expiryDate: item.expiryDate,
+                  location: 'Fridge',
+                  status: 'Good',
+                  note: `Claimed from ${item.postedBy}`,
+                  isClaimed: true
+               }).subscribe();
             }
          },
          error: (err) => {
@@ -236,11 +234,9 @@ export class DonationHubPage implements OnInit {
       this.http.post<any>(`${environment.apiUrl}/donations/${item.id}/cancel`, {}).subscribe({
          next: (res) => {
             if (res.success) {
-               setTimeout(() => {
-                  this.showToast(`Donation cancelled. Item returned to inventory.`, 'success');
-                  this.loadDonationsFromBackend();
-                  this.inventoryService.loadItems().subscribe();
-               });
+               this.showToast(`Donation cancelled. Item returned to inventory.`, 'success');
+               this.loadDonationsFromBackend();
+               this.inventoryService.loadItems().subscribe();
             }
          },
          error: (err) => {
@@ -276,6 +272,7 @@ export class DonationHubPage implements OnInit {
                   status: r.status
                }));
             }
+            this.cdr.detectChanges();
          },
          error: () => {
             this.isLoadingRequests = false;
@@ -303,11 +300,9 @@ export class DonationHubPage implements OnInit {
          next: (res) => {
             this.confirmingRequestId = null;
             if (res.success) {
-               setTimeout(() => {
-                  this.closeRequestsModal();
-                  this.showToast(`Confirmed ${requester.name}'s claim request! They will be notified.`, 'success');
-                  this.loadDonationsFromBackend();
-               });
+               this.closeRequestsModal();
+               this.showToast(`Confirmed ${requester.name}'s claim request! They will be notified.`, 'success');
+               this.loadDonationsFromBackend();
             }
          },
          error: (err) => {
@@ -321,8 +316,10 @@ export class DonationHubPage implements OnInit {
    showToast(message: string, type: 'success' | 'error') {
       this.toastMessage = message;
       this.toastType = type;
+      this.cdr.detectChanges();
       setTimeout(() => {
          this.toastMessage = null;
+         this.cdr.detectChanges();
       }, 4000);
    }
 
