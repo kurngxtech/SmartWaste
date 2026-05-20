@@ -1,3 +1,8 @@
+// Fix: Linux systemd-resolved DNS can't handle MongoDB Atlas SRV/TXT lookups.
+// Force Node.js to use Google Public DNS for reliable cross-OS connectivity.
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
