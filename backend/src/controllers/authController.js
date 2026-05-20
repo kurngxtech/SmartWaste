@@ -1,6 +1,10 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const User = require('../models/User');
+const FoodItem = require('../models/FoodItem');
+const MealPlan = require('../models/MealPlan');
+const Notification = require('../models/Notification');
+const ClaimRequest = require('../models/ClaimRequest');
 const { sendVerificationEmail, send2FAEmail, sendPasswordResetEmail } = require('../utils/emailService');
 const { generateAccessToken, generateRefreshToken } = require('../utils/token');
 
@@ -180,7 +184,7 @@ const login = async (req, res) => {
     // 1. Find user — generic message to prevent email enumeration
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(400).json({ success: false, message: 'Invalid credentials' });
+      return res.status(400).json({ success: false, message: 'Account no longer exists. Please register a new account.' });
     }
 
     // 2. Check if verified
@@ -619,6 +623,93 @@ const resendVerification = async (req, res) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// @route   DELETE /api/auth/profile
+// @desc    Delete user account and all owned resources (inventory, meal plans, notifications, claims)
+// ---------------------------------------------------------------------------
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // 1. Find user to verify they exist
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // 2. Find all food items owned by the user
+    const userFoodItems = await FoodItem.find({ userId }).select('_id');
+    const foodItemIds = userFoodItems.map(item => item._id);
+
+    // 3. Delete related claim requests (where user is requester OR donation belongs to user)
+    await ClaimRequest.deleteMany({
+      $or: [
+        { requesterId: userId },
+        { donationId: { $in: foodItemIds } }
+      ]
+    });
+
+    // 4. Delete user's food items/donations
+    await FoodItem.deleteMany({ userId });
+
+    // 5. Delete user's meal plans
+    await MealPlan.deleteMany({ userId });
+
+    // 6. Delete user's notifications
+    await Notification.deleteMany({ userId });
+
+    // 7. Delete the user account itself
+    await User.findByIdAndDelete(userId);
+
+    console.log(`[AuthController.deleteAccount] Successfully deleted user ${userId} and all related data.`);
+
+    res.status(200).json({ success: true, message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('[AuthController.deleteAccount] Error deleting account:', error);
+    res.status(500).json({ success: false, message: 'Server error during account deletion' });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// @route   POST /api/auth/resend-2fa
+// @desc    Resend login 2FA OTP via email
+// ---------------------------------------------------------------------------
+const resend2FA = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Invalidate any previous OTP by regenerating it
+    const twoFactorCode = Math.floor(100000 + Math.random() * 900000).toString();
+    user.twoFactorCode = twoFactorCode;
+    user.twoFactorCodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    await user.save();
+
+    try {
+      await send2FAEmail(user.email, twoFactorCode);
+    } catch (emailErr) {
+      console.error('[AuthController.resend2FA] Email delivery failed:', emailErr.message);
+      return res.status(500).json({
+        success: false,
+        emailError: true,
+        message: 'Failed to send 2FA email. Please check your SMTP configuration.',
+      });
+    }
+
+    res.status(200).json({ success: true, message: 'A new 2FA code has been sent to your email.' });
+  } catch (error) {
+    console.error('[AuthController.resend2FA] Error:', error);
+    res.status(500).json({ success: false, message: 'Server error during 2FA resend' });
+  }
+};
+
 module.exports = {
   register,
   verifyEmail,
@@ -632,4 +723,6 @@ module.exports = {
   logout,
   getProfile,
   updateProfile,
+  deleteAccount,
+  resend2FA,
 };

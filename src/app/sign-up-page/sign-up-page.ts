@@ -26,9 +26,11 @@ export class SignUpPageComponent {
    isVerificationMode = false;
    verificationError = false;
    serverError = '';
+   cooldown = 0;
+   private cooldownInterval: any;
    isLoading = false;
-   emailDeliveryWarning = false; // email sent but might be in spam / first-time delay
-   resendSuccess = false;        // resend OTP succeeded
+   emailDeliveryWarning = false;
+   resendSuccess = false;
 
    constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
       this.signUpForm = this.fb.group({
@@ -46,6 +48,20 @@ export class SignUpPageComponent {
 
    get f() { return this.signUpForm.controls; }
    get v() { return this.verificationForm.controls; }
+
+   startCooldown(): void {
+      if (this.cooldownInterval) {
+         clearInterval(this.cooldownInterval);
+      }
+      this.cooldownInterval = setInterval(() => {
+         if (this.cooldown > 0) {
+            this.cooldown--;
+            this.cdr.detectChanges();
+         } else {
+            clearInterval(this.cooldownInterval);
+         }
+      }, 1000);
+   }
 
    onSubmit(): void {
       if (this.isLoading) return; // guard: prevent double-submit race condition
@@ -99,6 +115,7 @@ export class SignUpPageComponent {
             next: (res) => {
                this.isLoading = false;
                if (res.success) {
+                  if (this.cooldownInterval) clearInterval(this.cooldownInterval);
                   this.router.navigate(['/login']);
                }
                this.cdr.detectChanges();
@@ -122,10 +139,12 @@ export class SignUpPageComponent {
       this.serverError = '';
       this.emailDeliveryWarning = false;
       this.resendSuccess = false;
+      this.cooldown = 0;
+      if (this.cooldownInterval) clearInterval(this.cooldownInterval);
    }
 
    resendCode(): void {
-      if (this.isLoading) return;
+      if (this.isLoading || this.cooldown > 0) return;
       const email = this.signUpForm.get('email')?.value;
       if (!email) return;
 
@@ -138,6 +157,8 @@ export class SignUpPageComponent {
          next: () => {
             this.isLoading = false;
             this.resendSuccess = true;
+            this.cooldown = 30; // 30 seconds cooldown
+            this.startCooldown();
             this.cdr.detectChanges();
          },
          error: (err) => {

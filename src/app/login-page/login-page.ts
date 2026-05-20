@@ -21,6 +21,9 @@ export class LoginPage {
    twoFactorCode = '';
    twoFactorError = '';
    twoFactorEmail = ''; // Email of the user who needs 2FA
+   twoFactorCooldown = 0;
+   private twoFactorInterval: any;
+   twoFactorResendSuccess = '';
 
    constructor(private fb: FormBuilder, public authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
       this.loginForm = this.fb.group({
@@ -31,6 +34,42 @@ export class LoginPage {
    }
 
    get f() { return this.loginForm.controls; }
+
+   startTwoFactorCooldown(): void {
+      if (this.twoFactorInterval) {
+         clearInterval(this.twoFactorInterval);
+      }
+      this.twoFactorInterval = setInterval(() => {
+         if (this.twoFactorCooldown > 0) {
+            this.twoFactorCooldown--;
+            this.cdr.detectChanges();
+         } else {
+            clearInterval(this.twoFactorInterval);
+         }
+      }, 1000);
+   }
+
+   resendTwoFactor(): void {
+      if (this.isLoading || this.twoFactorCooldown > 0) return;
+      this.isLoading = true;
+      this.twoFactorError = '';
+      this.twoFactorResendSuccess = '';
+
+      this.authService.resend2FA(this.twoFactorEmail).subscribe({
+         next: (res) => {
+            this.isLoading = false;
+            this.twoFactorResendSuccess = res.message || 'A new code has been sent!';
+            this.twoFactorCooldown = 30; // 30s cooldown
+            this.startTwoFactorCooldown();
+            this.cdr.detectChanges();
+         },
+         error: (err) => {
+            this.isLoading = false;
+            this.twoFactorError = err.error?.message || 'Could not resend code. Please try again.';
+            this.cdr.detectChanges();
+         }
+      });
+   }
 
    onSubmit(): void {
       if (this.loginForm.valid) {
@@ -46,6 +85,9 @@ export class LoginPage {
                      // Backend detected 2FA — show verification panel
                      this.requiresTwoFactor = true;
                      this.twoFactorEmail = res.user?.email || this.loginForm.value.email;
+                     this.twoFactorCooldown = 0;
+                     this.twoFactorResendSuccess = '';
+                     if (this.twoFactorInterval) clearInterval(this.twoFactorInterval);
                   } else {
                      // No 2FA — go straight to dashboard
                      this.router.navigate(['/dashboard']);
@@ -79,6 +121,7 @@ export class LoginPage {
             this.isLoading = false;
             if (res.success) {
                this.requiresTwoFactor = false;
+               if (this.twoFactorInterval) clearInterval(this.twoFactorInterval);
                this.router.navigate(['/dashboard']);
             }
             this.cdr.detectChanges();
@@ -95,5 +138,10 @@ export class LoginPage {
       this.requiresTwoFactor = false;
       this.twoFactorCode = '';
       this.twoFactorError = '';
+      this.twoFactorResendSuccess = '';
+      this.twoFactorCooldown = 0;
+      if (this.twoFactorInterval) {
+         clearInterval(this.twoFactorInterval);
+      }
    }
 }

@@ -29,12 +29,11 @@
                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Food & Inventory</h1>
                <p class="text-sm text-gray-500 mt-1">Track your food items and reduce waste</p>
             </div>
-            <button (click)="openAddModal()"
-               class="btn-primary">
+            <button (click)="openAddModal()" class="btn-primary">
                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                </svg>
-               Add item
+               Add Food Item
             </button>
          </div>
 
@@ -42,22 +41,26 @@
          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-center">
                <p class="text-sm text-gray-500 font-medium">Total Items</p>
-               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-gray-800 mt-1 animate-in fade-in duration-300">{{ totalItems }}</h3>
+               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-gray-800 mt-1 animate-in fade-in duration-300">{{
+                  totalItems }}</h3>
                <div *ngIf="isLoading" class="h-9 w-16 bg-gray-200/80 animate-pulse rounded-lg mt-1"></div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-center">
                <p class="text-sm text-gray-500 font-medium">Expiring Soon</p>
-               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-yellow-600 mt-1 animate-in fade-in duration-300">{{ expiringSoonCount }}</h3>
+               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-yellow-600 mt-1 animate-in fade-in duration-300">{{
+                  expiringSoonCount }}</h3>
                <div *ngIf="isLoading" class="h-9 w-16 bg-gray-200/80 animate-pulse rounded-lg mt-1"></div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-center">
                <p class="text-sm text-gray-500 font-medium">Expired</p>
-               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-red-500 mt-1 animate-in fade-in duration-300">{{ expiredCount }}</h3>
+               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-red-500 mt-1 animate-in fade-in duration-300">{{
+                  expiredCount }}</h3>
                <div *ngIf="isLoading" class="h-9 w-16 bg-gray-200/80 animate-pulse rounded-lg mt-1"></div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-center">
                <p class="text-sm text-gray-500 font-medium">Donated</p>
-               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-green-600 mt-1 animate-in fade-in duration-300">{{ donatedCount }}</h3>
+               <h3 *ngIf="!isLoading" class="text-3xl font-bold text-green-600 mt-1 animate-in fade-in duration-300">{{
+                  donatedCount }}</h3>
                <div *ngIf="isLoading" class="h-9 w-16 bg-gray-200/80 animate-pulse rounded-lg mt-1"></div>
             </div>
          </div>
@@ -118,21 +121,40 @@
                      <!-- Skeleton Loading Rows -->
                      <ng-container *ngIf="isLoading">
                         <tr *ngFor="let placeholder of [1, 2, 3, 4, 5]" class="animate-pulse">
-                           <td class="p-4"><div class="h-5 bg-gray-200 rounded w-24"></div></td>
-                           <td class="p-4"><div class="h-5 bg-gray-200 rounded w-16"></div></td>
-                           <td class="p-4"><div class="h-5 bg-gray-200 rounded w-8"></div></td>
-                           <td class="p-4"><div class="h-5 bg-gray-200 rounded w-20"></div></td>
-                           <td class="p-4"><div class="h-5 bg-gray-200 rounded w-12"></div></td>
-                           <td class="p-4"><div class="h-5 bg-gray-200 rounded w-16"></div></td>
-                           <td class="p-4"><div class="h-6 bg-gray-200 rounded-full w-16"></div></td>
-                           <td class="p-4"><div class="h-5 bg-gray-200 rounded w-20"></div></td>
-                           <td class="p-4"><div class="h-8 bg-gray-200 rounded w-full max-w-[200px] mx-auto"></div></td>
+                           <td class="p-4">
+                              <div class="h-5 bg-gray-200 rounded w-24"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-5 bg-gray-200 rounded w-16"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-5 bg-gray-200 rounded w-8"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-5 bg-gray-200 rounded w-20"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-5 bg-gray-200 rounded w-12"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-5 bg-gray-200 rounded w-16"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-6 bg-gray-200 rounded-full w-16"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-5 bg-gray-200 rounded w-20"></div>
+                           </td>
+                           <td class="p-4">
+                              <div class="h-8 bg-gray-200 rounded w-full max-w-[200px] mx-auto"></div>
+                           </td>
                         </tr>
                      </ng-container>
 
                      <!-- Actual Content Rows -->
                      <ng-container *ngIf="!isLoading">
-                        <tr *ngFor="let item of filteredItems" class="hover:bg-gray-50 transition-colors group animate-in fade-in duration-300">
+                        <tr *ngFor="let item of filteredItems"
+                           class="hover:bg-gray-50 transition-colors group animate-in fade-in duration-300">
                            <td class="p-4 font-medium text-gray-800">{{ item.name }}</td>
                            <td class="p-4 text-gray-600">{{ item.category }}</td>
                            <td class="p-4 text-gray-600 font-medium">{{ item.quantity }}</td>
@@ -150,7 +172,8 @@
                                  {{ item.status }}
                               </span>
                            </td>
-                           <td class="p-4 text-gray-500 text-xs max-w-[150px] truncate" [title]="item.note">{{ item.note }}
+                           <td class="p-4 text-gray-500 text-xs max-w-[150px] truncate" [title]="item.note">{{ item.note
+                              }}
                            </td>
                            <td class="p-4 flex justify-center space-x-2">
                               <button *ngIf="item.status !== 'Donated' && item.status !== 'Expired'"
@@ -185,7 +208,8 @@
                            </td>
                         </tr>
                         <tr *ngIf="filteredItems.length === 0">
-                           <td colspan="9" class="p-8 text-center text-gray-500">No items found matching your filters.</td>
+                           <td colspan="9" class="p-8 text-center text-gray-500">No items found matching your filters.
+                           </td>
                         </tr>
                      </ng-container>
                   </tbody>
@@ -250,10 +274,8 @@
             </div>
          </div>
          <div class="mt-6 flex justify-end space-x-3">
-            <button type="button" (click)="closeAddModal()"
-               class="btn-secondary">Cancel</button>
-            <button type="submit" [disabled]="addForm.invalid"
-               class="btn-primary">{{
+            <button type="button" (click)="closeAddModal()" class="btn-secondary">Cancel</button>
+            <button type="submit" [disabled]="addForm.invalid" class="btn-primary">{{
                isEditMode ? 'Save Changes' : 'Save Item' }}</button>
          </div>
       </form>
@@ -263,7 +285,8 @@
 <!-- Donate Modal -->
 <div *ngIf="showDonateModal"
    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-   <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
+   <div
+      class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
       <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
          <h3 class="text-lg font-bold text-gray-800">Convert to Donation</h3>
          <button (click)="closeDonateModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
@@ -288,15 +311,14 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">Quantity to Donate *</label>
                   <div class="flex items-center gap-3">
                      <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                        <button type="button"
-                           (click)="decrementDonateQuantity()"
+                        <button type="button" (click)="decrementDonateQuantity()"
                            class="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold transition-colors border-r border-gray-300">
                            −
                         </button>
-                        <input type="number" formControlName="donateQuantity" min="1" [max]="itemToDonate?.quantity || 1"
+                        <input type="number" formControlName="donateQuantity" min="1"
+                           [max]="itemToDonate?.quantity || 1"
                            class="w-16 text-center py-2 outline-none text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                        <button type="button"
-                           (click)="incrementDonateQuantity()"
+                        <button type="button" (click)="incrementDonateQuantity()"
                            class="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold transition-colors border-l border-gray-300">
                            +
                         </button>
@@ -333,8 +355,7 @@
                <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Contact Phone Number *</label>
                   <div class="flex items-center gap-2 mb-2">
-                     <input type="checkbox" formControlName="useAccountPhone"
-                        (change)="onUseAccountPhoneChange()"
+                     <input type="checkbox" formControlName="useAccountPhone" (change)="onUseAccountPhoneChange()"
                         id="useAccountPhone"
                         class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer">
                      <label for="useAccountPhone" class="text-xs text-gray-600 cursor-pointer select-none">
@@ -348,17 +369,17 @@
                <!-- 4. Pickup Location -->
                <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Location *</label>
-                  <p class="text-xs text-gray-400 mb-2">Enter the address or location details where the food items will be available for pickup.</p>
-                  <textarea formControlName="pickupLocation" rows="2" placeholder="e.g. Block A, Level 3, Room 302 — near the elevator lobby"
+                  <p class="text-xs text-gray-400 mb-2">Enter the address or location details where the food items will
+                     be available for pickup.</p>
+                  <textarea formControlName="pickupLocation" rows="2"
+                     placeholder="e.g. Block A, Level 3, Room 302 — near the elevator lobby"
                      class="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm"></textarea>
                </div>
 
             </div>
             <div class="mt-6 flex justify-end space-x-3">
-               <button type="button" (click)="closeDonateModal()"
-                  class="btn-secondary">Cancel</button>
-               <button type="submit" [disabled]="donateForm.invalid"
-                  class="btn-primary">Confirm Donation</button>
+               <button type="button" (click)="closeDonateModal()" class="btn-secondary">Cancel</button>
+               <button type="submit" [disabled]="donateForm.invalid" class="btn-primary">Confirm Donation</button>
             </div>
          </form>
       </div>
@@ -380,11 +401,8 @@
       <p class="text-sm text-gray-500 mb-6">Are you sure you want to delete <span class="font-bold">{{
             itemToDelete?.name }}</span> from your inventory? This action cannot be undone.</p>
       <div class="flex justify-center space-x-3">
-         <button (click)="closeDeleteModal()"
-            class="btn-secondary">Cancel</button>
-         <button (click)="confirmDelete()"
-            class="btn-danger">Delete</button>
+         <button (click)="closeDeleteModal()" class="btn-secondary">Cancel</button>
+         <button (click)="confirmDelete()" class="btn-danger">Delete</button>
       </div>
    </div>
 </div>
-

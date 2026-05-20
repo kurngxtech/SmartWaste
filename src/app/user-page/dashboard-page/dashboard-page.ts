@@ -28,6 +28,32 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       return this.alerts().filter(a => a.type === 'danger' || a.type === 'warning').length;
    }
 
+   get currentTier() {
+      const total = this.totalFoodSavedItems + this.totalDonationsItems;
+      if (total >= 15) {
+         return {
+            name: 'GOLD',
+            icon: '/app-logo/gold-medal.ico',
+            colorClass: 'text-yellow-600',
+            bgClass: 'bg-yellow-100'
+         };
+      } else if (total >= 5) {
+         return {
+            name: 'SILVER',
+            icon: '/app-logo/silver-medal.ico',
+            colorClass: 'text-slate-400',
+            bgClass: 'bg-slate-100'
+         };
+      } else {
+         return {
+            name: 'BRONZE',
+            icon: '/app-logo/bronze-medal.ico',
+            colorClass: 'text-amber-700',
+            bgClass: 'bg-amber-100'
+         };
+      }
+   }
+
    totalFoodSavedItems: number = 0;
    totalDonationsItems: number = 0;
    isLoading: boolean = true;
@@ -48,23 +74,26 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    ngOnInit() {
       // Only fetch data in the browser — SSR has no token and produces stale zeros
       if (isPlatformBrowser(this.platformId)) {
-         this.isLoading = true;
-         this.analyticsService.fetchSummary().subscribe({
-            next: () => {
-               const data = this.analyticsService.summary();
-               this.totalFoodSavedItems = data.totalUsed;
-               this.totalDonationsItems = data.totalDonated;
-               this.isLoading = false;
-               this.cdr.detectChanges();
-            },
-            error: () => {
-               this.isLoading = false;
-               this.cdr.detectChanges();
-            }
-         });
+         // Defer loading to the next VM turn to stabilize change detection and avoid NG0100/hydration issues
+         setTimeout(() => {
+            this.isLoading = true;
+            this.analyticsService.fetchSummary().subscribe({
+               next: () => {
+                  const data = this.analyticsService.summary();
+                  this.totalFoodSavedItems = data.totalUsed;
+                  this.totalDonationsItems = data.totalDonated;
+                  this.isLoading = false;
+                  this.cdr.detectChanges();
+               },
+               error: () => {
+                  this.isLoading = false;
+                  this.cdr.detectChanges();
+               }
+            });
 
-         // Also load inventory so notifications populate
-         this.inventoryService.loadItems().subscribe();
+            // Also load inventory so notifications populate
+            this.inventoryService.loadItems().subscribe();
+         });
       }
       
       this.chartData = this.analyticsService.getMonthlyImpactChart(this.selectedRange, this.selectedCategory);

@@ -7,6 +7,7 @@ import { UserSettingsService } from '../../services/user-settings.service';
 import { Router } from '@angular/router';
 import { InventoryService } from '../../services/inventory.service';
 import { MealPlannerService } from '../../services/meal-planner';
+import { AuthService } from '../../authentication/auth.service';
 
 @Component({
    selector: 'app-user-detail-page',
@@ -19,6 +20,7 @@ export class UserDetailPage {
    private router = inject(Router);
    private inventoryService = inject(InventoryService);
    private mealPlannerService = inject(MealPlannerService);
+   private authService = inject(AuthService);
 
    showToast = signal(false);
    isUploadingAvatar = signal(false);
@@ -34,8 +36,21 @@ export class UserDetailPage {
    closeLogoutConfirm() { this.showLogoutModal.set(false); }
 
    confirmLogout() {
-      this.closeLogoutConfirm();
-      this.router.navigate(['/login']);
+      this.authService.logout().subscribe({
+         next: () => {
+            this.closeLogoutConfirm();
+            this.router.navigate(['/login']);
+         },
+         error: () => {
+            // Even on error, clear local storage and redirect
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userPreferences');
+            this.closeLogoutConfirm();
+            this.router.navigate(['/login']);
+         }
+      });
    }
 
    openDeleteConfirm() { this.showDeleteModal1.set(true); }
@@ -50,12 +65,24 @@ export class UserDetailPage {
    }
 
    confirmDelete() {
-      this.inventoryService.clearLocalItems();
-      this.mealPlannerService.clearPlans();
-      this.settingsService.resetSettings();
-      
-      this.closeDeleteConfirm();
-      this.router.navigate(['/login']);
+      this.authService.deleteAccount().subscribe({
+         next: () => {
+            this.inventoryService.clearLocalItems();
+            this.mealPlannerService.clearPlans();
+            this.settingsService.resetSettings();
+            this.closeDeleteConfirm();
+            this.router.navigate(['/login']);
+         },
+         error: (err) => {
+            console.error('Failed to delete account', err);
+            // Fallback clear
+            this.inventoryService.clearLocalItems();
+            this.mealPlannerService.clearPlans();
+            this.settingsService.resetSettings();
+            this.closeDeleteConfirm();
+            this.router.navigate(['/login']);
+         }
+      });
    }
 
    saveChanges() {

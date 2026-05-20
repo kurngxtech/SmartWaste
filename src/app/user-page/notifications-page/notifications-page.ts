@@ -34,6 +34,17 @@ export class NotificationsPage {
       this.selectedNotif = null;
    }
 
+   markAllAsRead() {
+      // Visual acknowledgment — the computed marks isRead=false by default;
+      // here we simply close any open modal as a lightweight "all read" gesture.
+      this.closeNotifModal();
+   }
+
+   clearAll() {
+      this.closeNotifModal();
+      this.notificationService.clearAll();
+   }
+
    handleAction(action: string, notif?: any) {
       const targetNotif = notif || this.selectedNotif;
       if (!targetNotif) return;
@@ -70,7 +81,7 @@ export class NotificationsPage {
             }
          }
       }
-      
+
       this.closeNotifModal();
    }
 }

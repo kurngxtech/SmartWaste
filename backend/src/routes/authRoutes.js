@@ -13,6 +13,8 @@ const {
   logout,
   getProfile,
   updateProfile,
+  deleteAccount,
+  resend2FA,
 } = require('../controllers/authController');
 const { protect } = require('../middlewares/authMiddleware');
 
@@ -21,6 +23,7 @@ router.post('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerification); // Recovery: resend OTP if email failed
 router.post('/login', login);
 router.post('/verify-2fa', verify2FA);
+router.post('/resend-2fa', resend2FA);
 router.post('/toggle-2fa', protect, toggle2FA);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
@@ -29,6 +32,7 @@ router.post('/logout', logout);
 
 router.route('/profile')
   .get(protect, getProfile)
-  .put(protect, updateProfile);
+  .put(protect, updateProfile)
+  .delete(protect, deleteAccount);
 
 module.exports = router;

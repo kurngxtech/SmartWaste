@@ -63,7 +63,7 @@ export class DonationHubPage implements OnInit {
    // Toast feedback state
    toastMessage: string | null = null;
    toastType: 'success' | 'error' = 'success';
-   isLoading = false;
+   isLoading = true;
 
    // View Requests Modal state
    showRequestsModal = false;
@@ -86,8 +86,11 @@ export class DonationHubPage implements OnInit {
       // Only load data in the browser — SSR has no auth token
       if (!isPlatformBrowser(this.platformId)) return;
 
-      this.currentUserId = this.extractUserIdFromToken();
-      this.loadDonationsFromBackend();
+      // Defer loading to the next VM turn to stabilize change detection and avoid NG0100/hydration issues
+      setTimeout(() => {
+         this.currentUserId = this.extractUserIdFromToken();
+         this.loadDonationsFromBackend();
+      });
    }
 
    /**

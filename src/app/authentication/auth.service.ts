@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { UserSettingsService } from '../services/user-settings.service';
 import { MealPlannerService } from '../services/meal-planner';
+import { NotificationService } from '../services/notification.service';
 
 @Injectable({
    providedIn: 'root'
@@ -12,6 +13,7 @@ export class AuthService {
    private http = inject(HttpClient);
    private userSettingsService = inject(UserSettingsService);
    private mealPlannerService = inject(MealPlannerService);
+   private notificationService = inject(NotificationService);
 
    constructor() { }
 
@@ -61,6 +63,11 @@ export class AuthService {
       );
    }
 
+   // Resend login 2FA OTP (recovery path)
+   resend2FA(email: string): Observable<any> {
+      return this.http.post(`${environment.apiUrl}/auth/resend-2fa`, { email });
+   }
+
    // Toggle 2FA on/off (requires auth)
    toggle2FA(enabled: boolean): Observable<any> {
       return this.http.post(`${environment.apiUrl}/auth/toggle-2fa`, { enabled });
@@ -104,6 +111,23 @@ export class AuthService {
    logout(): Observable<any> {
       const refreshToken = localStorage.getItem('refreshToken');
       return this.http.post(`${environment.apiUrl}/auth/logout`, { refreshToken }).pipe(
+         tap(() => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userPreferences');
+
+            // Clear per-user in-memory state to prevent cross-user data leakage
+            this.mealPlannerService.clearPlans();
+            // Reset dismissed notification IDs so the next session starts clean
+            this.notificationService.resetDismissed();
+         })
+      );
+   }
+
+   // Delete account
+   deleteAccount(): Observable<any> {
+      return this.http.delete(`${environment.apiUrl}/auth/profile`).pipe(
          tap(() => {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');

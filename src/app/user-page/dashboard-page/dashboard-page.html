@@ -9,7 +9,7 @@
       <main class="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-8">
 
          <div class="mb-8">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Impact Analysis</h1>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">Track and Report Analysis</h1>
             <p class="text-sm text-gray-500 mt-1">Track your household's contribution to reducing food waste.</p>
          </div>
 
@@ -18,7 +18,8 @@
                <div class="w-10 h-10 rounded bg-green-100 flex items-center justify-center mb-4">
                   <img src="/app-logo/total-food-dashboard.ico" alt="Food Saved" class="w-6 h-6 object-contain">
                </div>
-               <h3 *ngIf="!isLoading" class="text-3xl font-black text-gray-800 animate-in fade-in duration-300">{{ totalFoodSavedItems }} Items</h3>
+               <h3 *ngIf="!isLoading" class="text-3xl font-black text-gray-800 animate-in fade-in duration-300">{{
+                  totalFoodSavedItems }} Items</h3>
                <div *ngIf="isLoading" class="h-9 w-36 bg-gray-200/80 animate-pulse rounded-lg mb-1"></div>
                <p class="text-sm text-gray-500 mt-1 font-medium">Total Food Saved</p>
             </div>
@@ -26,15 +27,18 @@
                <div class="w-10 h-10 rounded bg-blue-100 flex items-center justify-center mb-4">
                   <img src="/app-logo/food-donation-dashboard.ico" alt="Donations Made" class="w-6 h-6 object-contain">
                </div>
-               <h3 *ngIf="!isLoading" class="text-3xl font-black text-gray-800 animate-in fade-in duration-300">{{ totalDonationsItems }} Items</h3>
+               <h3 *ngIf="!isLoading" class="text-3xl font-black text-gray-800 animate-in fade-in duration-300">{{
+                  totalDonationsItems }} Items</h3>
                <div *ngIf="isLoading" class="h-9 w-36 bg-gray-200/80 animate-pulse rounded-lg mb-1"></div>
                <p class="text-sm text-gray-500 mt-1 font-medium">Donations Made</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-               <div class="w-10 h-10 rounded bg-yellow-100 flex items-center justify-center mb-4">
-                  <img src="/app-logo/gold-medal.ico" alt="Gold Tier" class="w-6 h-6 object-contain">
+               <div class="w-10 h-10 rounded flex items-center justify-center mb-4" [ngClass]="currentTier.bgClass">
+                  <img [src]="currentTier.icon" [alt]="currentTier.name + ' Tier'" class="w-6 h-6 object-contain">
                </div>
-               <h3 *ngIf="!isLoading" class="text-3xl font-black text-yellow-600 animate-in fade-in duration-300">GOLD</h3>
+               <h3 *ngIf="!isLoading" class="text-3xl font-black animate-in fade-in duration-300" [ngClass]="currentTier.colorClass">
+                  {{ currentTier.name }}
+               </h3>
                <div *ngIf="isLoading" class="h-9 w-24 bg-gray-200/80 animate-pulse rounded-lg mb-1"></div>
                <p class="text-sm text-gray-500 mt-1 font-medium">Current Status Tier</p>
             </div>
@@ -42,14 +46,15 @@
                class="bg-white rounded-xl shadow-sm border border-red-100 p-6 hover:shadow-md transition-shadow relative overflow-hidden">
                <div class="absolute right-0 top-0 w-2 h-full bg-red-400"></div>
                <h3 class="text-lg font-bold text-gray-800 mb-2">ALERT</h3>
-               <p *ngIf="!isLoading" class="text-3xl font-black text-red-500 animate-in fade-in duration-300">{{ alertCount }} New</p>
+               <p *ngIf="!isLoading" class="text-3xl font-black text-red-500 animate-in fade-in duration-300">{{
+                  alertCount }} New</p>
                <div *ngIf="isLoading" class="h-9 w-20 bg-gray-200/80 animate-pulse rounded-lg mb-1"></div>
                <p class="text-sm text-gray-500 mt-1 font-medium">Requires attention</p>
             </div>
          </div>
- 
+
          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
- 
+
             <div
                class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col hover:shadow-md transition-shadow">
                <div class="flex justify-between items-center mb-8 flex-wrap gap-2">
@@ -69,31 +74,36 @@
                      </select>
                   </div>
                </div>
- 
+
                <div
                   class="flex-1 w-full h-[400px] relative bg-gray-50 rounded-lg p-4 border border-dashed border-gray-200 overflow-hidden">
                   <!-- Chart Loading Overlay -->
-                  <div *ngIf="isLoading" class="absolute inset-0 bg-white/60 backdrop-blur-xs z-10 flex items-center justify-center flex-col gap-3">
-                     <div class="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div *ngIf="isLoading"
+                     class="absolute inset-0 bg-white/60 backdrop-blur-xs z-10 flex items-center justify-center flex-col gap-3">
+                     <div class="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin">
+                     </div>
                      <span class="text-xs text-gray-500 font-medium">Generating visualization...</span>
                   </div>
                   <canvas #impactChart></canvas>
                </div>
             </div>
- 
+
             <div
                class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden hover:shadow-md transition-shadow">
                <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                   <h2 class="text-lg font-bold text-gray-800">NOTIFICATIONS</h2>
-                  <span *ngIf="!isLoading" class="bg-blue-100 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full animate-in fade-in duration-300">{{ alerts().length }}
+                  <span *ngIf="!isLoading"
+                     class="bg-blue-100 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full animate-in fade-in duration-300">{{
+                     alerts().length }}
                      New</span>
                   <div *ngIf="isLoading" class="h-6 w-12 bg-gray-200 animate-pulse rounded-full"></div>
                </div>
- 
+
                <div class="flex-1 overflow-y-auto p-2">
                   <!-- Skeleton Loader for Notifications -->
                   <div *ngIf="isLoading" class="space-y-2 p-2">
-                     <div *ngFor="let placeholder of [1, 2, 3, 4]" class="p-4 bg-gray-50/50 rounded-lg border border-gray-100/50 animate-pulse flex items-start gap-3">
+                     <div *ngFor="let placeholder of [1, 2, 3, 4]"
+                        class="p-4 bg-gray-50/50 rounded-lg border border-gray-100/50 animate-pulse flex items-start gap-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-gray-200 mt-1"></div>
                         <div class="flex-1 space-y-2">
                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -101,21 +111,21 @@
                         </div>
                      </div>
                   </div>
- 
+
                   <!-- Actual Notifications -->
                   <div *ngIf="!isLoading" class="animate-in fade-in duration-300">
                      <div *ngFor="let alert of alerts()"
                         class="p-4 mb-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 cursor-pointer transition-colors group">
                         <div class="flex items-start">
-                           <div class="mt-1 w-2 h-2 rounded-full mr-3"
-                              [ngClass]="{
+                           <div class="mt-1 w-2 h-2 rounded-full mr-3" [ngClass]="{
                                  'bg-red-400': alert.type === 'danger',
                                  'bg-amber-400': alert.type === 'warning',
                                  'bg-green-400': alert.type === 'success',
                                  'bg-blue-400': alert.type === 'info'
                               }"></div>
                            <div>
-                              <h4 class="text-sm font-bold text-gray-800 group-hover:text-green-700 transition-colors">{{
+                              <h4 class="text-sm font-bold text-gray-800 group-hover:text-green-700 transition-colors">
+                                 {{
                                  alert.title }}</h4>
                               <p class="text-xs text-gray-500 mt-1">{{ alert.description }}</p>
                            </div>
@@ -123,16 +133,14 @@
                      </div>
                   </div>
                </div>
- 
+
                <div class="p-4 border-t border-gray-100 bg-gray-50">
-                  <button
-                     class="btn-secondary w-full"
-                     routerLink="/notifications">
+                  <button class="btn-secondary w-full" routerLink="/notifications">
                      VIEW ALL NOTIFICATIONS
                   </button>
                </div>
             </div>
- 
+
          </div>
       </main>
    </div>

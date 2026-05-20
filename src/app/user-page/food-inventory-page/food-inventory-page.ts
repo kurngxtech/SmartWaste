@@ -51,7 +51,7 @@ export class FoodInventoryPageComponent implements OnInit {
 
    today = new Date();
    showToast = signal(false);
-   isLoading = false;
+   isLoading = true;
    Math = Math; // Expose Math for template expressions
 
    triggerToast() {
@@ -92,17 +92,20 @@ export class FoodInventoryPageComponent implements OnInit {
       // Only load data in the browser — SSR has no auth token
       if (!isPlatformBrowser(this.platformId)) return;
 
-      this.loadAllInventory();
+      // Defer loading to the next VM turn to stabilize change detection and avoid NG0100/hydration issues
+      setTimeout(() => {
+         this.loadAllInventory();
 
-      this.route.queryParams.subscribe(params => {
-         if (params['action'] === 'donate' && params['itemId']) {
-            this.inventoryService.loadItems().subscribe(() => {
-               const itemToDonate = this.inventoryService.items().find(i => i.id === params['itemId']);
-               if (itemToDonate) {
-                  this.openDonateModal(itemToDonate);
-               }
-            });
-         }
+         this.route.queryParams.subscribe(params => {
+            if (params['action'] === 'donate' && params['itemId']) {
+               this.inventoryService.loadItems().subscribe(() => {
+                  const itemToDonate = this.inventoryService.items().find(i => i.id === params['itemId']);
+                  if (itemToDonate) {
+                     this.openDonateModal(itemToDonate);
+                  }
+               });
+            }
+         });
       });
    }
 

@@ -10,6 +10,9 @@ import { UserSettingsService } from './user-settings.service';
 export class NotificationService {
    private settingsService = inject(UserSettingsService);
 
+   /** Set of notification IDs the user has dismissed via clearAll() */
+   private _dismissedIds = signal<Set<string>>(new Set<string>());
+
    constructor(
       private inventoryService: InventoryService,
       private analyticsService: AnalyticsService
@@ -17,6 +20,7 @@ export class NotificationService {
 
    public notifications = computed(() => {
       const prefs = this.settingsService.preferences();
+      const dismissed = this._dismissedIds();
 
       // 1. Get notifications from InventoryService
       const inventoryNotifs = this.inventoryService.getNotifications().map(n => ({
@@ -67,18 +71,43 @@ export class NotificationService {
       let allNotifs = [...inventoryNotifs, ...donatedNotifs, ...claimedNotifs];
 
       // Apply settings logic to filter notifications
-      if (!prefs.expiryAlerts) {
-         allNotifs = allNotifs.filter(n => n.type !== 'danger' && n.type !== 'warning');
+      if (prefs) {
+         if (!prefs.expiryAlerts) {
+            allNotifs = allNotifs.filter(n => n.type !== 'danger' && n.type !== 'warning');
+         }
+         if (!prefs.donationUpdates) {
+            allNotifs = allNotifs.filter(n => n.type !== 'success');
+         }
+         if (!prefs.weeklySummary) {
+            allNotifs = allNotifs.filter(n => n.type !== 'info');
+         }
       }
-      if (!prefs.donationUpdates) {
-         allNotifs = allNotifs.filter(n => n.type !== 'success');
-      }
-      if (!prefs.weeklySummary) {
-         allNotifs = allNotifs.filter(n => n.type !== 'info');
+
+      // Filter out any IDs the user has explicitly dismissed via clearAll()
+      if (dismissed.size > 0) {
+         allNotifs = allNotifs.filter(n => !dismissed.has(n.id));
       }
 
       return allNotifs.reverse();
    });
+
+   /**
+    * Dismiss all currently visible notifications (non-destructive — underlying
+    * data is unchanged; items are just hidden from the list view).
+    */
+   clearAll(): void {
+      const currentIds = this.notifications().map(n => n.id);
+      // Create a new Set so Angular's signal equality check triggers a re-render
+      this._dismissedIds.update(prev => new Set([...prev, ...currentIds]));
+   }
+
+   /**
+    * Reset the dismissed list — call on logout or account switch so a
+    * fresh session shows all notifications again.
+    */
+   resetDismissed(): void {
+      this._dismissedIds.set(new Set<string>());
+   }
 
    getAllNotifications(): AppNotification[] {
       return this.notifications();

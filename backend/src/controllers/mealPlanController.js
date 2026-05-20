@@ -37,7 +37,7 @@ const createMealPlan = async (req, res) => {
 
     const savedPlan = await newPlan.save();
 
-    // Decrement food inventory quantities
+    // Decrement food inventory quantities and update status
     if (ingredients && ingredients.length > 0) {
       for (const ing of ingredients) {
         if (ing.itemId && ing.quantity > 0) {
@@ -47,9 +47,12 @@ const createMealPlan = async (req, res) => {
             { returnDocument: 'after' }
           );
           
-          // Optionally mark as used if quantity is <= 0
-          if (updatedItem && updatedItem.quantity <= 0) {
-            updatedItem.status = 'used';
+          if (updatedItem) {
+            if (updatedItem.quantity <= 0) {
+              updatedItem.status = 'used';
+            } else {
+              updatedItem.status = 'claimed';
+            }
             await updatedItem.save();
           }
         }

@@ -16,6 +16,9 @@ export class ForgotPasswordComponent {
    isSubmitted = false;   // Switches to success state after submit
    serverError = '';
 
+   cooldown = 0;
+   private cooldownInterval: any;
+
    constructor(
       private fb: FormBuilder,
       private authService: AuthService,
@@ -27,6 +30,27 @@ export class ForgotPasswordComponent {
    }
 
    get f() { return this.forgotForm.controls; }
+
+   startCooldown(): void {
+      if (this.cooldownInterval) {
+         clearInterval(this.cooldownInterval);
+      }
+      this.cooldownInterval = setInterval(() => {
+         if (this.cooldown > 0) {
+            this.cooldown--;
+            this.cdr.detectChanges();
+         } else {
+            clearInterval(this.cooldownInterval);
+         }
+      }, 1000);
+   }
+
+   resendLink(): void {
+      if (this.isLoading || this.cooldown > 0) return;
+      this.onSubmit();
+      this.cooldown = 30; // 30s cooldown
+      this.startCooldown();
+   }
 
    onSubmit(): void {
       if (this.forgotForm.valid) {
@@ -54,5 +78,9 @@ export class ForgotPasswordComponent {
       this.isSubmitted = false;
       this.forgotForm.reset();
       this.serverError = '';
+      this.cooldown = 0;
+      if (this.cooldownInterval) {
+         clearInterval(this.cooldownInterval);
+      }
    }
 }

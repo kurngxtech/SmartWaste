@@ -114,10 +114,6 @@
             {{ serverError }}
          </div>
 
-         <div *ngIf="verificationError" class="p-3 mb-6 text-sm text-red-200 bg-red-900/40 border border-red-500 rounded-lg font-semibold text-center">
-            Invalid verification code. Please try again.
-         </div>
-
          <form [formGroup]="verificationForm" (ngSubmit)="onVerify()" class="space-y-6">
             <div>
                <label for="code" class="block text-sm font-semibold mb-2 ml-1 text-center">Enter 6-Digit Code</label>
@@ -139,10 +135,11 @@
          </form>
 
          <div class="mt-4 text-center">
-            <button type="button" (click)="resendCode()" [disabled]="isLoading"
+            <button type="button" (click)="resendCode()" [disabled]="isLoading || cooldown > 0"
                class="text-sm font-semibold text-green-200 hover:text-white hover:underline underline-offset-4 cursor-pointer focus:outline-none transition-colors disabled:opacity-50">
                <span *ngIf="isLoading">Sending...</span>
-               <span *ngIf="!isLoading">Didn't receive a code? Resend Code</span>
+               <span *ngIf="!isLoading && cooldown > 0">Request New Code in {{ cooldown }}s</span>
+               <span *ngIf="!isLoading && cooldown === 0">Didn't receive a code? Resend Code</span>
             </button>
          </div>
 

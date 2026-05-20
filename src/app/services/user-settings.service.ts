@@ -70,29 +70,29 @@ export class UserSettingsService {
             if (res.success && res.data) {
                const u = res.data;
                const updatedProfile = {
-                  name: u.name,
-                  email: u.email,
-                  phone: u.phone,
-                  householdSize: u.householdSize,
-                  avatarUrl: u.avatarUrl
+                  name: u.name || 'User',
+                  email: u.email || '',
+                  phone: u.phone || '+60 12-345-6789',
+                  householdSize: u.householdSize || 1,
+                  avatarUrl: u.avatarUrl || ''
                };
                this.profile.set(updatedProfile);
                this._syncLocalStorage(updatedProfile);
                this.preferences.set({
-                  expiryAlerts: u.expiryAlerts,
-                  donationUpdates: u.donationUpdates,
-                  weeklySummary: u.weeklySummary,
-                  diets: u.diets,
-                  twoFactorEnabled: u.twoFactorEnabled,
-                  donationVisibility: u.donationVisibility,
-                  locationPrivacy: u.locationPrivacy,
-                  dataAnalyticsOptIn: u.dataAnalyticsOptIn,
-                  expiryThreshold: u.expiryThreshold,
-                  alertMealReminders: u.alertMealReminders,
-                  deliveryChannel: u.deliveryChannel,
-                  storageLocations: u.storageLocations,
-                  pickupLocations: u.pickupLocations,
-                  preferredCategories: u.preferredCategories
+                  expiryAlerts: u.expiryAlerts ?? true,
+                  donationUpdates: u.donationUpdates ?? true,
+                  weeklySummary: u.weeklySummary ?? false,
+                  diets: u.diets ?? ['Vegetarian', 'Halal'],
+                  twoFactorEnabled: u.twoFactorEnabled ?? false,
+                  donationVisibility: u.donationVisibility ?? 'public',
+                  locationPrivacy: u.locationPrivacy ?? 'neighborhood',
+                  dataAnalyticsOptIn: u.dataAnalyticsOptIn ?? true,
+                  expiryThreshold: u.expiryThreshold ?? 3,
+                  alertMealReminders: u.alertMealReminders ?? false,
+                  deliveryChannel: u.deliveryChannel ?? 'both',
+                  storageLocations: u.storageLocations ?? ['Main Fridge', 'Pantry', 'Freezer'],
+                  pickupLocations: u.pickupLocations ?? ['Home', 'Office'],
+                  preferredCategories: u.preferredCategories ?? ['Vegetarian']
                });
             }
          },
@@ -106,25 +106,25 @@ export class UserSettingsService {
             if (res.success && res.data) {
                const u = res.data;
                // Update local signals
-               const updatedProfile = { ...this.profile(), name: u.name, phone: u.phone, householdSize: u.householdSize, avatarUrl: u.avatarUrl };
+               const updatedProfile = { ...this.profile(), name: u.name || this.profile().name, phone: u.phone || this.profile().phone, householdSize: u.householdSize || this.profile().householdSize, avatarUrl: u.avatarUrl || this.profile().avatarUrl };
                this.profile.set(updatedProfile);
                this._syncLocalStorage(updatedProfile);
                this.preferences.update(p => ({
                   ...p,
-                  expiryAlerts: u.expiryAlerts,
-                  donationUpdates: u.donationUpdates,
-                  weeklySummary: u.weeklySummary,
-                  diets: u.diets,
-                  twoFactorEnabled: u.twoFactorEnabled,
-                  donationVisibility: u.donationVisibility,
-                  locationPrivacy: u.locationPrivacy,
-                  dataAnalyticsOptIn: u.dataAnalyticsOptIn,
-                  expiryThreshold: u.expiryThreshold,
-                  alertMealReminders: u.alertMealReminders,
-                  deliveryChannel: u.deliveryChannel,
-                  storageLocations: u.storageLocations,
-                  pickupLocations: u.pickupLocations,
-                  preferredCategories: u.preferredCategories
+                  expiryAlerts: u.expiryAlerts ?? p.expiryAlerts,
+                  donationUpdates: u.donationUpdates ?? p.donationUpdates,
+                  weeklySummary: u.weeklySummary ?? p.weeklySummary,
+                  diets: u.diets ?? p.diets,
+                  twoFactorEnabled: u.twoFactorEnabled ?? p.twoFactorEnabled,
+                  donationVisibility: u.donationVisibility ?? p.donationVisibility,
+                  locationPrivacy: u.locationPrivacy ?? p.locationPrivacy,
+                  dataAnalyticsOptIn: u.dataAnalyticsOptIn ?? p.dataAnalyticsOptIn,
+                  expiryThreshold: u.expiryThreshold ?? p.expiryThreshold,
+                  alertMealReminders: u.alertMealReminders ?? p.alertMealReminders,
+                  deliveryChannel: u.deliveryChannel ?? p.deliveryChannel,
+                  storageLocations: u.storageLocations ?? p.storageLocations,
+                  pickupLocations: u.pickupLocations ?? p.pickupLocations,
+                  preferredCategories: u.preferredCategories ?? p.preferredCategories
                }));
             }
          },
